@@ -17,7 +17,6 @@ import json
 import time
 import logging
 import asyncio
-import email
 from email.parser import BytesParser
 from email.policy import default
 from datetime import datetime
