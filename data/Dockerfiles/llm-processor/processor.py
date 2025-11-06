@@ -412,7 +412,7 @@ async def health_check():
         redis_status = "ok"
         try:
             processor.redis.ping()
-        except:
+        except Exception:
             redis_status = "error"
 
         return {
