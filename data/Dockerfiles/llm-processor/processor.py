@@ -444,6 +444,9 @@ async def health_check():
 async def analyze_email(request: EmailAnalysisRequest, background_tasks: BackgroundTasks):
     """Analyze a specific email"""
     try:
+        # Validate mailbox format
+        if '@' not in request.mailbox:
+            raise HTTPException(status_code=400, detail="Invalid mailbox format: missing '@'")
         # Find email file
         maildir_path = os.path.join(VMAIL_PATH, request.mailbox.split('@')[1],
                                      request.mailbox.split('@')[0], 'cur')
