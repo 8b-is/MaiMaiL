@@ -4,7 +4,7 @@ function init_db_schema()
   try {
     global $pdo;
 
-    $db_version = "07102025_1015";
+    $db_version = "07102025_1016";
 
     $stmt = $pdo->query("SHOW TABLES LIKE 'versions'");
     $num_results = count($stmt->fetchAll(PDO::FETCH_ASSOC));
@@ -1143,6 +1143,103 @@ function init_db_schema()
         "keys" => array(
           "primary" => array(
             "" => array("refresh_token")
+          )
+        ),
+        "attr" => "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC"
+      ),
+      "llm_email_analysis" => array(
+        "cols" => array(
+          "id" => "INT NOT NULL AUTO_INCREMENT",
+          "mailbox" => "VARCHAR(255) NOT NULL",
+          "email_id" => "VARCHAR(255) NOT NULL",
+          "summary" => "TEXT",
+          "categories" => "JSON",
+          "priority_score" => "TINYINT NOT NULL DEFAULT 5",
+          "is_phishing" => "TINYINT(1) NOT NULL DEFAULT 0",
+          "phishing_score" => "FLOAT NOT NULL DEFAULT 0.0",
+          "sensitive_data" => "TINYINT(1) NOT NULL DEFAULT 0",
+          "auto_reply_suggestion" => "TEXT",
+          "processing_time" => "FLOAT",
+          "analyzed_at" => "DATETIME(0) NOT NULL DEFAULT NOW(0)",
+          "created" => "DATETIME(0) NOT NULL DEFAULT NOW(0)",
+          "modified" => "DATETIME ON UPDATE NOW(0)"
+        ),
+        "keys" => array(
+          "primary" => array(
+            "" => array("id")
+          ),
+          "unique" => array(
+            "mailbox_email" => array("mailbox", "email_id")
+          ),
+          "key" => array(
+            "mailbox" => array("mailbox"),
+            "is_phishing" => array("is_phishing"),
+            "analyzed_at" => array("analyzed_at")
+          )
+        ),
+        "attr" => "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC"
+      ),
+      "llm_config" => array(
+        "cols" => array(
+          "id" => "INT NOT NULL AUTO_INCREMENT",
+          "config_key" => "VARCHAR(255) NOT NULL",
+          "config_value" => "TEXT",
+          "description" => "TEXT",
+          "created" => "DATETIME(0) NOT NULL DEFAULT NOW(0)",
+          "modified" => "DATETIME ON UPDATE NOW(0)"
+        ),
+        "keys" => array(
+          "primary" => array(
+            "" => array("id")
+          ),
+          "unique" => array(
+            "config_key" => array("config_key")
+          )
+        ),
+        "attr" => "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC"
+      ),
+      "llm_processing_queue" => array(
+        "cols" => array(
+          "id" => "INT NOT NULL AUTO_INCREMENT",
+          "mailbox" => "VARCHAR(255) NOT NULL",
+          "email_id" => "VARCHAR(255) NOT NULL",
+          "status" => "ENUM('pending', 'processing', 'completed', 'failed') NOT NULL DEFAULT 'pending'",
+          "priority" => "TINYINT NOT NULL DEFAULT 5",
+          "attempts" => "INT NOT NULL DEFAULT 0",
+          "error_message" => "TEXT",
+          "created" => "DATETIME(0) NOT NULL DEFAULT NOW(0)",
+          "modified" => "DATETIME ON UPDATE NOW(0)"
+        ),
+        "keys" => array(
+          "primary" => array(
+            "" => array("id")
+          ),
+          "key" => array(
+            "mailbox" => array("mailbox"),
+            "status" => array("status"),
+            "priority" => array("priority"),
+            "created" => array("created")
+          )
+        ),
+        "attr" => "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC"
+      ),
+      "llm_user_preferences" => array(
+        "cols" => array(
+          "id" => "INT NOT NULL AUTO_INCREMENT",
+          "username" => "VARCHAR(255) NOT NULL",
+          "auto_analysis" => "TINYINT(1) NOT NULL DEFAULT 1",
+          "auto_categorize" => "TINYINT(1) NOT NULL DEFAULT 1",
+          "phishing_alerts" => "TINYINT(1) NOT NULL DEFAULT 1",
+          "summary_enabled" => "TINYINT(1) NOT NULL DEFAULT 1",
+          "created" => "DATETIME(0) NOT NULL DEFAULT NOW(0)",
+          "modified" => "DATETIME ON UPDATE NOW(0)"
+        ),
+        "keys" => array(
+          "primary" => array(
+            "" => array("id")
+          ),
+          "unique" => array(
+            "username" => array("username")
           )
         ),
         "attr" => "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC"
