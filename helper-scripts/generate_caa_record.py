@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Based on github.com/diafygi/acme-tiny, original copyright:
 # Copyright Daniel Roesler, under MIT license, see LICENSE at github.com/diafygi/acme-tiny
-import argparse, subprocess, json, os, sys, base64, binascii, time, hashlib, re, copy, textwrap, logging
+import argparse, subprocess, json, sys, base64, binascii, time, hashlib, re, textwrap, logging
 try:
     from urllib.request import urlopen, Request # Python 3
 except ImportError: # pragma: no cover
@@ -102,9 +102,9 @@ def main(argv=None):
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description=textwrap.dedent("""\
-            Generate a CAA record for Mailcow.
+            Generate a CAA record for MaiMaiL.
 
-            Example Usage: python mailcow_gencaa.py --account-key data/assets/ssl/acme/account.pem
+            Example Usage: python maimail_gencaa.py --account-key data/assets/ssl/acme/account.pem
             """)
     )
     parser.add_argument("--account-key", required=True, help="path to your Let's Encrypt account private key")

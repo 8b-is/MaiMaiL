@@ -56,8 +56,8 @@ def prepare_template_vars():
     'HTTP_PORT': os.getenv("HTTP_PORT", "80"),
     'HTTPS_PORT': os.getenv("HTTPS_PORT", "443"),
     'SOGOHOST': os.getenv("SOGOHOST", ipv4_network + ".248"),
-    'RSPAMDHOST': os.getenv("RSPAMDHOST", "rspamd-mailcow"),
-    'PHPFPMHOST': os.getenv("PHPFPMHOST", "php-fpm-mailcow"),
+    'RSPAMDHOST': os.getenv("RSPAMDHOST", "rspamd-maimail"),
+    'PHPFPMHOST': os.getenv("PHPFPMHOST", "php-fpm-maimail"),
     'ENABLE_IPV6': os.getenv("ENABLE_IPV6", "true").lower() != "false",
     'HTTP_REDIRECT': os.getenv("HTTP_REDIRECT", "n").lower() in ("y", "yes"),
   }

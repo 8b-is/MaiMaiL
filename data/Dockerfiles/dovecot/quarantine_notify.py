@@ -41,7 +41,7 @@ try:
       break
 
   time_now = int(time.time())
-  mailcow_hostname = os.environ.get('MAILCOW_HOSTNAME')
+  maimail_hostname = os.environ.get('MAILCOW_HOSTNAME')
 
   max_score = float(r.get('Q_MAX_SCORE') or "9999.0")
   if max_score == "":
@@ -93,7 +93,7 @@ try:
         with open('/templates/quarantine.tpl') as file_:
             template = env.from_string(file_.read())
     try:
-        html = template.render(meta=meta_query, username=rcpt, counter=msg_count, hostname=mailcow_hostname, quarantine_acl=quarantine_acl)
+        html = template.render(meta=meta_query, username=rcpt, counter=msg_count, hostname=maimail_hostname, quarantine_acl=quarantine_acl)
     except (jinja2.exceptions.SecurityError, TemplateError) as ex:
         print(f"SecurityError or TemplateError in template rendering: {ex}")
         return

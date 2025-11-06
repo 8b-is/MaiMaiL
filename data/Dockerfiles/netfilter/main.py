@@ -84,7 +84,7 @@ def refreshF2bregex():
   global exit_code
   if not r.get('F2B_REGEX'):
     f2bregex = {}
-    f2bregex[1] = r'mailcow UI: Invalid password for .+ by ([0-9a-f\.:]+)'
+    f2bregex[1] = r'maimail UI: Invalid password for .+ by ([0-9a-f\.:]+)'
     f2bregex[2] = r'Rspamd UI: Invalid password by ([0-9a-f\.:]+)'
     f2bregex[3] = r'warning: .*\[([0-9a-f\.:]+)\]: SASL .+ authentication failed: (?!.*Connection lost to authentication server).+'
     f2bregex[4] = r'warning: non-SMTP command from .*\[([0-9a-f\.:]+)]:.+'
@@ -330,7 +330,7 @@ def autopurge():
         logdebug("Ban expired for %s" % net_str)
         unban(net_str)
 
-def mailcowChainOrder():
+def maimailChainOrder():
   global lock
   global quit_now
   global exit_code
@@ -457,7 +457,7 @@ if __name__ == '__main__':
     tables = IPTables(chain_name, logger)
 
   clear()
-  logger.logInfo("Initializing mailcow netfilter chain")
+  logger.logInfo("Initializing maimail netfilter chain")
   tables.initChainIPv4()
   tables.initChainIPv6()
 
@@ -465,7 +465,7 @@ if __name__ == '__main__':
     logger.logInfo(f"Skipping {chain_name} isolation")
   else:
     logger.logInfo(f"Setting {chain_name} isolation")
-    tables.create_mailcow_isolation_rule("br-mailcow", [3306, 6379, 8983, 12345], os.getenv("MAILCOW_REPLICA_IP"))
+    tables.create_maimail_isolation_rule("br-maimail", [3306, 6379, 8983, 12345], os.getenv("MAILCOW_REPLICA_IP"))
 
   # connect to redis
   while True:
@@ -529,9 +529,9 @@ if __name__ == '__main__':
   autopurge_thread.daemon = True
   autopurge_thread.start()
 
-  mailcowchainwatch_thread = Thread(target=mailcowChainOrder)
-  mailcowchainwatch_thread.daemon = True
-  mailcowchainwatch_thread.start()
+  maimailchainwatch_thread = Thread(target=maimailChainOrder)
+  maimailchainwatch_thread.daemon = True
+  maimailchainwatch_thread.start()
 
   blacklistupdate_thread = Thread(target=blacklistUpdate)
   blacklistupdate_thread.daemon = True

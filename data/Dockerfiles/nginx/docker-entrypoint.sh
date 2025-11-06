@@ -1,8 +1,8 @@
 #!/bin/sh
 
-PHPFPMHOST=${PHPFPMHOST:-"php-fpm-mailcow"}
+PHPFPMHOST=${PHPFPMHOST:-"php-fpm-maimail"}
 SOGOHOST=${SOGOHOST:-"$IPV4_NETWORK.248"}
-RSPAMDHOST=${RSPAMDHOST:-"rspamd-mailcow"}
+RSPAMDHOST=${RSPAMDHOST:-"rspamd-maimail"}
 
 until ping ${PHPFPMHOST} -c1 > /dev/null; do
   echo "Waiting for PHP..."

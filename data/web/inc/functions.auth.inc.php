@@ -62,13 +62,13 @@ function check_login($user, $pass, $app_passwd_data = false, $extra = null) {
 
   if (!isset($_SESSION['ldelay'])) {
     $_SESSION['ldelay'] = "0";
-    $redis->publish("F2B_CHANNEL", "mailcow UI: Invalid password for " . $user . " by " . $_SERVER['REMOTE_ADDR']);
-    error_log("mailcow UI: Invalid password for " . $user . " by " . $_SERVER['REMOTE_ADDR']);
+    $redis->publish("F2B_CHANNEL", "maimail UI: Invalid password for " . $user . " by " . $_SERVER['REMOTE_ADDR']);
+    error_log("maimail UI: Invalid password for " . $user . " by " . $_SERVER['REMOTE_ADDR']);
   }
-  elseif (!isset($_SESSION['mailcow_cc_username'])) {
+  elseif (!isset($_SESSION['maimail_cc_username'])) {
     $_SESSION['ldelay'] = $_SESSION['ldelay']+0.5;
-    $redis->publish("F2B_CHANNEL", "mailcow UI: Invalid password for " . $user . " by " . $_SERVER['REMOTE_ADDR']);
-    error_log("mailcow UI: Invalid password for " . $user . " by " . $_SERVER['REMOTE_ADDR']);
+    $redis->publish("F2B_CHANNEL", "maimail UI: Invalid password for " . $user . " by " . $_SERVER['REMOTE_ADDR']);
+    error_log("maimail UI: Invalid password for " . $user . " by " . $_SERVER['REMOTE_ADDR']);
   }
   $_SESSION['return'][] =  array(
     'type' => 'danger',
@@ -108,8 +108,8 @@ function admin_login($user, $pass){
     $authenticators = get_tfa($user);
     if (isset($authenticators['additional']) && is_array($authenticators['additional']) && count($authenticators['additional']) > 0) {
       // active tfa authenticators found, set pending user login
-      $_SESSION['pending_mailcow_cc_username'] = $user;
-      $_SESSION['pending_mailcow_cc_role'] = "admin";
+      $_SESSION['pending_maimail_cc_username'] = $user;
+      $_SESSION['pending_maimail_cc_role'] = "admin";
       $_SESSION['pending_tfa_methods'] = $authenticators['additional'];
       unset($_SESSION['ldelay']);
       $_SESSION['return'][] =  array(
@@ -160,8 +160,8 @@ function domainadmin_login($user, $pass){
     // check for tfa authenticators
     $authenticators = get_tfa($user);
     if (isset($authenticators['additional']) && is_array($authenticators['additional']) && count($authenticators['additional']) > 0) {
-      $_SESSION['pending_mailcow_cc_username'] = $user;
-      $_SESSION['pending_mailcow_cc_role'] = "domainadmin";
+      $_SESSION['pending_maimail_cc_username'] = $user;
+      $_SESSION['pending_maimail_cc_role'] = "domainadmin";
       $_SESSION['pending_tfa_methods'] = $authenticators['additional'];
       unset($_SESSION['ldelay']);
       $_SESSION['return'][] =  array(
@@ -282,8 +282,8 @@ function user_login($user, $pass, $extra = null){
           $authenticators = get_tfa($user);
           if (isset($authenticators['additional']) && is_array($authenticators['additional']) && count($authenticators['additional']) > 0 && !$is_internal) {
             // authenticators found, init TFA flow
-            $_SESSION['pending_mailcow_cc_username'] = $user;
-            $_SESSION['pending_mailcow_cc_role'] = "user";
+            $_SESSION['pending_maimail_cc_username'] = $user;
+            $_SESSION['pending_maimail_cc_role'] = "user";
             $_SESSION['pending_tfa_methods'] = $authenticators['additional'];
             unset($_SESSION['ldelay']);
             $_SESSION['return'][] =  array(
@@ -334,8 +334,8 @@ function user_login($user, $pass, $extra = null){
         $authenticators = get_tfa($user);
         if (isset($authenticators['additional']) && is_array($authenticators['additional']) && count($authenticators['additional']) > 0 && !$is_internal) {
           // authenticators found, init TFA flow
-          $_SESSION['pending_mailcow_cc_username'] = $user;
-          $_SESSION['pending_mailcow_cc_role'] = "user";
+          $_SESSION['pending_maimail_cc_username'] = $user;
+          $_SESSION['pending_maimail_cc_role'] = "user";
           $_SESSION['pending_tfa_methods'] = $authenticators['additional'];
           unset($_SESSION['ldelay']);
           $_SESSION['return'][] =  array(
@@ -362,7 +362,7 @@ function user_login($user, $pass, $extra = null){
       }
       return $result;
     break;
-    case 'mailcow':
+    case 'maimail':
       if ($row['active'] != 1 || $row['d_active'] != 1) {
         return false;
       }
@@ -377,13 +377,13 @@ function user_login($user, $pass, $extra = null){
         $authenticators = get_tfa($user);
         if (isset($authenticators['additional']) && is_array($authenticators['additional']) && count($authenticators['additional']) > 0 && !$is_internal) {
           // authenticators found, init TFA flow
-          $_SESSION['pending_mailcow_cc_username'] = $user;
-          $_SESSION['pending_mailcow_cc_role'] = "user";
+          $_SESSION['pending_maimail_cc_username'] = $user;
+          $_SESSION['pending_maimail_cc_role'] = "user";
           $_SESSION['pending_tfa_methods'] = $authenticators['additional'];
           unset($_SESSION['ldelay']);
           $_SESSION['return'][] =  array(
             'type' => 'success',
-            'log' => array(__FUNCTION__, $user, '*', 'Provider: mailcow'),
+            'log' => array(__FUNCTION__, $user, '*', 'Provider: maimail'),
             'msg' => array('logged_in_as', $user)
           );
           return "pending";
@@ -396,7 +396,7 @@ function user_login($user, $pass, $extra = null){
             $stmt->execute(array(':user' => $user));
             $_SESSION['return'][] =  array(
               'type' => 'success',
-              'log' => array(__FUNCTION__, $user, '*', 'Provider: mailcow'),
+              'log' => array(__FUNCTION__, $user, '*', 'Provider: maimail'),
               'msg' => array('logged_in_as', $user)
             );
           }
@@ -472,7 +472,7 @@ function apppass_login($user, $pass, $app_passwd_data, $extra = null){
 
   return false;
 }
-// Keycloak REST Api Flow - auth user by mailcow_password attribute
+// Keycloak REST Api Flow - auth user by maimail_password attribute
 // This password will be used for direct UI, IMAP and SMTP Auth
 // To use direct user credentials, only Authorization Code Flow is valid
 function keycloak_mbox_login_rest($user, $pass, $extra = null){
@@ -497,10 +497,10 @@ function keycloak_mbox_login_rest($user, $pass, $extra = null){
     return false;
   }
 
-  // get access_token for service account of mailcow client
+  // get access_token for service account of maimail client
   $admin_token = identity_provider("get-keycloak-admin-token");
 
-  // get the mailcow_password attribute from keycloak user
+  // get the maimail_password attribute from keycloak user
   $url = "{$iam_settings['server_url']}/admin/realms/{$iam_settings['realm']}/users";
   $queryParams = array('email' => $user, 'exact' => true);
   $queryString = http_build_query($queryParams);
@@ -523,31 +523,31 @@ function keycloak_mbox_login_rest($user, $pass, $extra = null){
     );
     return false;
   }
-  if (!isset($user_res['attributes']['mailcow_password']) || !is_array($user_res['attributes']['mailcow_password'])){
+  if (!isset($user_res['attributes']['maimail_password']) || !is_array($user_res['attributes']['maimail_password'])){
     $_SESSION['return'][] =  array(
       'type' => 'danger',
-      'log' => array(__FUNCTION__, $user, '*', 'User has no mailcow_password attribute'),
+      'log' => array(__FUNCTION__, $user, '*', 'User has no maimail_password attribute'),
       'msg' => 'generic_server_error'
     );
     return false;
   }
-  if (empty($user_res['attributes']['mailcow_password'][0])){
+  if (empty($user_res['attributes']['maimail_password'][0])){
     $_SESSION['return'][] =  array(
       'type' => 'danger',
-      'log' => array(__FUNCTION__, $user, '*', "User's mailcow_password attribute is empty"),
+      'log' => array(__FUNCTION__, $user, '*', "User's maimail_password attribute is empty"),
       'msg' => 'generic_server_error'
     );
     return false;
   }
 
-  // validate mailcow_password
-  $mailcow_password = $user_res['attributes']['mailcow_password'][0];
-  if (!verify_hash($mailcow_password, $pass)) {
+  // validate maimail_password
+  $maimail_password = $user_res['attributes']['maimail_password'][0];
+  if (!verify_hash($maimail_password, $pass)) {
     return false;
   }
 
   // get mapped template
-  $user_template = $user_res['attributes']['mailcow_template'][0];
+  $user_template = $user_res['attributes']['maimail_template'][0];
   $mapper_key = array_search($user_template, $iam_settings['mappers']);
 
   if (!$create) {

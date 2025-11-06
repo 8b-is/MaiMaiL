@@ -2,7 +2,7 @@
 require_once $_SERVER['DOCUMENT_ROOT'] . '/inc/prerequisites.inc.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/inc/triggers.user.inc.php';
 
-if (isset($_SESSION['mailcow_cc_role']) && $_SESSION['mailcow_cc_role'] == 'user') {
+if (isset($_SESSION['maimail_cc_role']) && $_SESSION['maimail_cc_role'] == 'user') {
 
   /*
   / USER
@@ -10,13 +10,13 @@ if (isset($_SESSION['mailcow_cc_role']) && $_SESSION['mailcow_cc_role'] == 'user
 
   require_once $_SERVER['DOCUMENT_ROOT'] . '/inc/header.inc.php';
   $_SESSION['return_to'] = $_SERVER['REQUEST_URI'];
-  $username = $_SESSION['mailcow_cc_username'];
+  $username = $_SESSION['maimail_cc_username'];
   $mailboxdata = mailbox('get', 'mailbox_details', $username);
   $pushover_data = pushover('get', $username);
   $tfa_data = get_tfa();
   $fido2_data = fido2(array("action" => "get_friendly_names"));
 
-  $clientconfigstr = "host=" . urlencode($mailcow_hostname) . "&email=" . urlencode($username) . "&name=" . urlencode($mailboxdata['name']) . "&ui=" . urlencode(strtok($_SERVER['HTTP_HOST'], ':')) . "&port=" . urlencode($autodiscover_config['caldav']['port']);
+  $clientconfigstr = "host=" . urlencode($maimail_hostname) . "&email=" . urlencode($username) . "&name=" . urlencode($mailboxdata['name']) . "&ui=" . urlencode(strtok($_SERVER['HTTP_HOST'], ':')) . "&port=" . urlencode($autodiscover_config['caldav']['port']);
   if ($autodiscover_config['useEASforOutlook'] == 'yes')
   $clientconfigstr .= "&outlookEAS=1";
   if (file_exists('thunderbird-plugins/version.csv')) {
@@ -74,11 +74,11 @@ if (isset($_SESSION['mailcow_cc_role']) && $_SESSION['mailcow_cc_role'] == 'user
     'lang_datatables' => json_encode($lang['datatables']),
   ];
 }
-elseif (isset($_SESSION['mailcow_cc_role']) && $_SESSION['mailcow_cc_role'] == 'admin') {
+elseif (isset($_SESSION['maimail_cc_role']) && $_SESSION['maimail_cc_role'] == 'admin') {
   header('Location: /admin/dashboard');
   exit();
 }
-elseif (isset($_SESSION['mailcow_cc_role']) && $_SESSION['mailcow_cc_role'] == 'domainadmin') {
+elseif (isset($_SESSION['maimail_cc_role']) && $_SESSION['maimail_cc_role'] == 'domainadmin') {
   header('Location: /domainadmin/mailbox');
   exit();
 }

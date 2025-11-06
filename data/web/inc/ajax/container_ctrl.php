@@ -7,11 +7,11 @@ if (isset($_SERVER['HTTP_SEC_FETCH_DEST']) && $_SERVER['HTTP_SEC_FETCH_DEST'] !=
 }
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/inc/prerequisites.inc.php';
-if (!isset($_SESSION['mailcow_cc_role']) || $_SESSION['mailcow_cc_role'] != 'admin') {
+if (!isset($_SESSION['maimail_cc_role']) || $_SESSION['maimail_cc_role'] != 'admin') {
 	exit();
 }
 
-if (preg_match('/^[a-z\-]{0,}-mailcow/', $_GET['service'])) {
+if (preg_match('/^[a-z\-]{0,}-maimail/', $_GET['service'])) {
   if ($_GET['action'] == "start") {
     header('Content-Type: text/html; charset=utf-8');
     $retry = 0;

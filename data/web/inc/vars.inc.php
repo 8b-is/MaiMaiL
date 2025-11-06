@@ -16,7 +16,7 @@ $database_pass = getenv('DBPASS');
 $database_name = getenv('DBNAME');
 
 // Other variables
-$mailcow_hostname = getenv('MAILCOW_HOSTNAME');
+$maimail_hostname = getenv('MAILCOW_HOSTNAME');
 $default_pass_scheme = getenv('MAILCOW_PASS_SCHEME');
 
 // Autodiscover settings
@@ -34,7 +34,7 @@ if ($https_port === FALSE) {
 // Other settings =>
 $autodiscover_config = array(
   // General autodiscover service type: "activesync" or "imap"
-  // emClient uses autodiscover, but does not support ActiveSync. mailcow excludes emClient from ActiveSync.
+  // emClient uses autodiscover, but does not support ActiveSync. maimail excludes emClient from ActiveSync.
   // With SOGo disabled, the type will always fallback to imap. CalDAV and CardDAV will be excluded, too.
   'autodiscoverType' => 'activesync',
   // If autodiscoverType => activesync, also use ActiveSync (EAS) for Outlook desktop clients (>= Outlook 2013 on Windows)
@@ -44,29 +44,29 @@ $autodiscover_config = array(
   // The autodiscover service will always point to SMTPS and IMAPS (TLS-wrapped services).
   // The autoconfig service will additionally announce the STARTTLS-enabled ports, specified in the "tlsport" variable.
   'imap' => array(
-    'server' => $mailcow_hostname,
+    'server' => $maimail_hostname,
     'port' => (int)filter_var(substr(getenv('IMAPS_PORT'), strrpos(getenv('IMAPS_PORT'), ':')), FILTER_SANITIZE_NUMBER_INT),
     'tlsport' => (int)filter_var(substr(getenv('IMAP_PORT'), strrpos(getenv('IMAP_PORT'), ':')), FILTER_SANITIZE_NUMBER_INT)
   ),
   'pop3' => array(
-    'server' => $mailcow_hostname,
+    'server' => $maimail_hostname,
     'port' => (int)filter_var(substr(getenv('POPS_PORT'), strrpos(getenv('POPS_PORT'), ':')), FILTER_SANITIZE_NUMBER_INT),
     'tlsport' => (int)filter_var(substr(getenv('POP_PORT'), strrpos(getenv('POP_PORT'), ':')), FILTER_SANITIZE_NUMBER_INT)
   ),
   'smtp' => array(
-    'server' => $mailcow_hostname,
+    'server' => $maimail_hostname,
     'port' => (int)filter_var(substr(getenv('SMTPS_PORT'), strrpos(getenv('SMTPS_PORT'), ':')), FILTER_SANITIZE_NUMBER_INT),
     'tlsport' => (int)filter_var(substr(getenv('SUBMISSION_PORT'), strrpos(getenv('SUBMISSION_PORT'), ':')), FILTER_SANITIZE_NUMBER_INT)
   ),
   'activesync' => array(
-    'url' => 'https://' . $mailcow_hostname . ($https_port == 443 ? '' : ':' . $https_port) . '/Microsoft-Server-ActiveSync',
+    'url' => 'https://' . $maimail_hostname . ($https_port == 443 ? '' : ':' . $https_port) . '/Microsoft-Server-ActiveSync',
   ),
   'caldav' => array(
-    'server' => $mailcow_hostname,
+    'server' => $maimail_hostname,
     'port' => $https_port,
   ),
   'carddav' => array(
-    'server' => $mailcow_hostname,
+    'server' => $maimail_hostname,
     'port' => $https_port,
   ),
 );
@@ -123,7 +123,7 @@ $UI_THEME = "lumen";
 // Show DKIM private keys - false by default
 $SHOW_DKIM_PRIV_KEYS = false;
 
-// mailcow Apps - buttons on login screen
+// maimail Apps - buttons on login screen
 $MAILCOW_APPS = array(
   array(
     'name' => 'Webmail',
@@ -162,7 +162,7 @@ $SESSION_SAMESITE_POLICY = "Lax";
 $SESSION_NAME = "MCSESSID";
 
 // Label for OTP devices
-$OTP_LABEL = "mailcow UI";
+$OTP_LABEL = "maimail UI";
 
 // How long to wait (in s) for cURL Docker requests
 $DOCKER_TIMEOUT = 60;
@@ -173,7 +173,7 @@ $SPLIT_DKIM_255 = false;
 // OAuth2 settings
 $REFRESH_TOKEN_LIFETIME = 2678400;
 $ACCESS_TOKEN_LIFETIME = 86400;
-// Logout from mailcow after first OAuth2 session profile request
+// Logout from maimail after first OAuth2 session profile request
 $OAUTH2_FORGET_SESSION_AFTER_LOGIN = false;
 
 // Set a limit for mailbox and domain tagging
@@ -188,7 +188,7 @@ $MAILBOX_DEFAULT_ATTRIBUTES['tls_enforce_in'] = false;
 // Force outgoing TLS for new mailboxes by default
 $MAILBOX_DEFAULT_ATTRIBUTES['tls_enforce_out'] = false;
 
-// Force password change on next login (only allows login to mailcow UI)
+// Force password change on next login (only allows login to maimail UI)
 $MAILBOX_DEFAULT_ATTRIBUTES['force_pw_update'] = false;
 
 // Enable SOGo access - Users will be redirected to SOGo after login (set to false to disable redirect by default)
@@ -249,7 +249,7 @@ $FIDO2_USER_PRESENT_FLAG = true;
 $FIDO2_FORMATS = array('apple', 'android-key', 'android-safetynet', 'fido-u2f', 'none', 'packed', 'tpm');
 
 
-// Set visible Rspamd maps in mailcow UI, do not change unless you know what you are doing
+// Set visible Rspamd maps in maimail UI, do not change unless you know what you are doing
 $RSPAMD_MAPS = array(
   'regex' => array(
     'Header-From: Denylist' => 'global_mime_from_blacklist.map',

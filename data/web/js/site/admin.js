@@ -32,18 +32,18 @@ jQuery(function($){
         continue;
       }
       if(!validateRegex(regex_data[i])) {
-        mailcow_alert_box('Cannot build regex from line ' + (i+1), 'danger');
+        maimail_alert_box('Cannot build regex from line ' + (i+1), 'danger');
         var regex_valid = false;
         break;
       }
       if(!regex_data[i].startsWith('/') || !/\/[ims]?$/.test(regex_data[i])){
-        mailcow_alert_box('Line ' + (i+1) + ' is invalid', 'danger');
+        maimail_alert_box('Line ' + (i+1) + ' is invalid', 'danger');
         var regex_valid = false;
         break;
       }
     }
     if (regex_valid) {
-      mailcow_alert_box('Regex OK', 'success');
+      maimail_alert_box('Regex OK', 'success');
       $('button[data-id="' + regex_map_id + '"]').attr({"disabled": false});
     }
   });
@@ -765,9 +765,9 @@ jQuery(function($){
     });
     res = await res.json();
     if (res.type === 'success'){
-      return mailcow_alert_box(lang_success.iam_test_connection, 'success');
+      return maimail_alert_box(lang_success.iam_test_connection, 'success');
     }
-    return mailcow_alert_box(lang_danger.iam_test_connection, 'danger');
+    return maimail_alert_box(lang_danger.iam_test_connection, 'danger');
   });
 
   $('.iam_rolemap_add_keycloak').click(async function(e){

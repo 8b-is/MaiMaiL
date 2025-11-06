@@ -2217,5 +2217,5 @@
 2620:119:50c0:207::/64	permit
 2620:119:50c0:207::215	permit
 2800:3f0:4000::/36	permit
-49.12.4.251 permit # checks.mailcow.email
-2a01:4f8:c17:7906::10 permit # checks.mailcow.email
+49.12.4.251 permit # checks.maimail.email
+2a01:4f8:c17:7906::10 permit # checks.maimail.email

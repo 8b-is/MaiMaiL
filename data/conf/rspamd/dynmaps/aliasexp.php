@@ -24,7 +24,7 @@ catch (PDOException $e) {
 
 // Init Redis
 $redis = new Redis();
-$redis->connect('redis-mailcow', 6379);
+$redis->connect('redis-maimail', 6379);
 $redis->auth(getenv("REDISPASS"));
 
 function parse_email($email) {
@@ -58,7 +58,7 @@ $parsed_rcpt = parse_email($rcpt);
 // Create array of final mailboxes
 $rcpt_final_mailboxes = array();
 
-// Skip if not a mailcow handled domain
+// Skip if not a maimail handled domain
 try {
   if (!$redis->hGet('DOMAIN_MAP', $parsed_rcpt['domain'])) {
     exit;
@@ -123,7 +123,7 @@ try {
       else {
         $parsed_goto = parse_email($goto);
         if (!$redis->hGet('DOMAIN_MAP', $parsed_goto['domain'])) {
-          error_log("ALIAS EXPANDER:" . $goto . " is not a mailcow handled mailbox or alias address" . PHP_EOL);
+          error_log("ALIAS EXPANDER:" . $goto . " is not a maimail handled mailbox or alias address" . PHP_EOL);
         }
         else {
           $stmt = $pdo->prepare("SELECT `goto` FROM `alias` WHERE `address` = :goto AND `active` = '1'");

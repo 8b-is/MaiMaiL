@@ -48,24 +48,24 @@ if (isset($_POST["pw_reset"])) {
   }
 }
 if (isset($_POST["verify_tfa_login"])) {
-  if (verify_tfa_login($_SESSION['pending_mailcow_cc_username'], $_POST)) {
-    if ($_SESSION['pending_mailcow_cc_role'] == "user") {
+  if (verify_tfa_login($_SESSION['pending_maimail_cc_username'], $_POST)) {
+    if ($_SESSION['pending_maimail_cc_role'] == "user") {
       if (isset($_SESSION['pending_pw_reset_token']) && isset($_SESSION['pending_pw_new_password'])) {
         reset_password("reset", array(
           'new_password' => $_SESSION['pending_pw_new_password'],
           'new_password2' => $_SESSION['pending_pw_new_password'],
           'token' => $_SESSION['pending_pw_reset_token'],
-          'username' => $_SESSION['pending_mailcow_cc_username']
+          'username' => $_SESSION['pending_maimail_cc_username']
         ));
         unset($_SESSION['pending_pw_reset_token']);
         unset($_SESSION['pending_pw_new_password']);
-        unset($_SESSION['pending_mailcow_cc_username']);
+        unset($_SESSION['pending_maimail_cc_username']);
         unset($_SESSION['pending_tfa_methods']);
 
         header("Location: /");
         die();
       } else {
-        set_user_loggedin_session($_SESSION['pending_mailcow_cc_username']);
+        set_user_loggedin_session($_SESSION['pending_maimail_cc_username']);
 
         if (isset($_SESSION['oauth2_request'])) {
           $oauth2_request = $_SESSION['oauth2_request'];
@@ -74,7 +74,7 @@ if (isset($_POST["verify_tfa_login"])) {
           die();
         }
 
-        $user_details = mailbox("get", "mailbox_details", $_SESSION['mailcow_cc_username']);
+        $user_details = mailbox("get", "mailbox_details", $_SESSION['maimail_cc_username']);
         $is_dual = (!empty($_SESSION["dual-login"]["username"])) ? true : false;
         if (intval($user_details['attributes']['sogo_access']) == 1 &&
             intval($user_details['attributes']['force_pw_update']) != 1 &&
@@ -90,8 +90,8 @@ if (isset($_POST["verify_tfa_login"])) {
     }
   }
 
-  unset($_SESSION['pending_mailcow_cc_username']);
-  unset($_SESSION['pending_mailcow_cc_role']);
+  unset($_SESSION['pending_maimail_cc_username']);
+  unset($_SESSION['pending_maimail_cc_role']);
   unset($_SESSION['pending_tfa_methods']);
 }
 if (isset($_POST["verify_fido2_login"])) {
@@ -110,8 +110,8 @@ if (isset($_POST["verify_fido2_login"])) {
 if (isset($_GET["cancel_tfa_login"])) {
   unset($_SESSION['pending_pw_reset_token']);
   unset($_SESSION['pending_pw_new_password']);
-  unset($_SESSION['pending_mailcow_cc_username']);
-  unset($_SESSION['pending_mailcow_cc_role']);
+  unset($_SESSION['pending_maimail_cc_username']);
+  unset($_SESSION['pending_maimail_cc_role']);
   unset($_SESSION['pending_tfa_methods']);
 
   header("Location: /");
@@ -154,11 +154,11 @@ if (isset($_POST["login_user"]) && isset($_POST["pass_user"])) {
     }
 	}
 	elseif ($as != "pending") {
-    unset($_SESSION['pending_mailcow_cc_username']);
-    unset($_SESSION['pending_mailcow_cc_role']);
+    unset($_SESSION['pending_maimail_cc_username']);
+    unset($_SESSION['pending_maimail_cc_role']);
     unset($_SESSION['pending_tfa_methods']);
-		unset($_SESSION['mailcow_cc_username']);
-		unset($_SESSION['mailcow_cc_role']);
+		unset($_SESSION['maimail_cc_username']);
+		unset($_SESSION['maimail_cc_role']);
 	}
 }
 ?>

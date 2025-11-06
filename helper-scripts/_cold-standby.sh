@@ -115,7 +115,7 @@ fi
 }
 
 SCRIPT_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-source "${SCRIPT_DIR}/../mailcow.conf"
+source "${SCRIPT_DIR}/../maimail.conf"
 COMPOSE_FILE="${SCRIPT_DIR}/../docker-compose.yml"
 CMPS_PRJ=$(echo ${COMPOSE_PROJECT_NAME} | tr -cd '0-9A-Za-z-_')
 SQLIMAGE=$(grep -iEo '(mysql|mariadb)\:.+' "${COMPOSE_FILE}")
@@ -146,19 +146,19 @@ if ! ssh -o StrictHostKeyChecking=no \
   ${REMOTE_SSH_HOST} \
   -p ${REMOTE_SSH_PORT} \
   mkdir -p "${SCRIPT_DIR}/../" ; then
-    >&2 echo -e "\e[31m[ERR]\e[0m - Could not prepare remote for mailcow base directory transfer"
+    >&2 echo -e "\e[31m[ERR]\e[0m - Could not prepare remote for maimail base directory transfer"
     exit 1
 fi
 
-# Syncing the mailcow base directory
-echo -e "\033[1mSynchronizing mailcow base directory...\033[0m"
+# Syncing the maimail base directory
+echo -e "\033[1mSynchronizing maimail base directory...\033[0m"
 rsync --delete -aH -e "ssh -o StrictHostKeyChecking=no \
   -i \"${REMOTE_SSH_KEY}\" \
   -p ${REMOTE_SSH_PORT}" \
   "${SCRIPT_DIR}/../" root@${REMOTE_SSH_HOST}:"${SCRIPT_DIR}/../"
 ec=$?
 if [ ${ec} -ne 0 ] && [ ${ec} -ne 24 ]; then
-  >&2 echo -e "\e[31m[ERR]\e[0m - Could not transfer mailcow base directory to remote"
+  >&2 echo -e "\e[31m[ERR]\e[0m - Could not transfer maimail base directory to remote"
   exit 1
 fi
 
@@ -175,7 +175,7 @@ fi
 
 # Trigger a Redis save for a consistent Redis copy
 echo -ne "\033[1mRunning redis-cli save... \033[0m"
-docker exec $(docker ps -qf name=redis-mailcow) redis-cli -a ${REDISPASS} --no-auth-warning save
+docker exec $(docker ps -qf name=redis-maimail) redis-cli -a ${REDISPASS} --no-auth-warning save
 
 # Syncing volumes related to compose project
 # Same here: make sure destination exists

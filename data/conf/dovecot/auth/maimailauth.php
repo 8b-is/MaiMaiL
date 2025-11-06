@@ -30,7 +30,7 @@ try {
     $redis->connect(getenv('REDIS_SLAVEOF_IP'), getenv('REDIS_SLAVEOF_PORT'));
   }
   else {
-    $redis->connect('redis-mailcow', 6379);
+    $redis->connect('redis-maimail', 6379);
   }
   $redis->auth(getenv("REDISPASS"));
 }

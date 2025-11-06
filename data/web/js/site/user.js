@@ -84,7 +84,7 @@ jQuery(function($){
       $('#spinner-last-login').removeClass('d-none');
       $.ajax({
         dataType: 'json',
-        url: '/api/v1/get/last-login/' + encodeURIComponent(mailcow_cc_username) + '/' + days,
+        url: '/api/v1/get/last-login/' + encodeURIComponent(maimail_cc_username) + '/' + days,
         jsonp: false,
         error: function () {
           console.log('error reading last logins');
@@ -120,7 +120,7 @@ jQuery(function($){
     } else if (action == 'reset') {
       $.ajax({
         dataType: 'json',
-        url: '/api/v1/get/reset-last-login/' + encodeURIComponent(mailcow_cc_username),
+        url: '/api/v1/get/reset-last-login/' + encodeURIComponent(maimail_cc_username),
         jsonp: false,
         error: function () {
           console.log('cannot reset last logins');
@@ -258,7 +258,7 @@ jQuery(function($){
       language: lang_datatables,
       ajax: {
         type: "GET",
-        url: '/api/v1/get/syncjobs/' + encodeURIComponent(mailcow_cc_username) + '/no_log',
+        url: '/api/v1/get/syncjobs/' + encodeURIComponent(maimail_cc_username) + '/no_log',
         dataSrc: function(data){
           $.each(data, function (i, item) {
             item.user1 = escapeHtml(item.user1);
@@ -644,7 +644,7 @@ jQuery(function($){
     $('#user_sieve_filter').text(lang.loading);
     $.ajax({
       dataType: 'json',
-      url: '/api/v1/get/active-user-sieve/' + encodeURIComponent(mailcow_cc_username),
+      url: '/api/v1/get/active-user-sieve/' + encodeURIComponent(maimail_cc_username),
       jsonp: false,
       error: function () {
         console.log('Cannot get active sieve script');

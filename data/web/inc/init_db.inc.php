@@ -33,7 +33,7 @@ function init_db_schema()
         GROUP BY goto;",
       // START
       // Unused at the moment - we cannot allow to show a foreign mailbox as sender address in SOGo, as SOGo does not like this
-      // We need to create delegation in SOGo AND set a sender_acl in mailcow to allow to send as user X
+      // We need to create delegation in SOGo AND set a sender_acl in maimail to allow to send as user X
       "grouped_sender_acl" => "CREATE VIEW grouped_sender_acl (username, send_as_acl) AS
         SELECT logged_in_as, IFNULL(GROUP_CONCAT(send_as SEPARATOR ' '), '') AS send_as_acl FROM sender_acl
         WHERE send_as NOT LIKE '@%'
@@ -373,7 +373,7 @@ function init_db_schema()
           "custom_attributes" => "JSON NOT NULL DEFAULT ('{}')",
           "kind" => "VARCHAR(100) NOT NULL DEFAULT ''",
           "multiple_bookings" => "INT NOT NULL DEFAULT -1",
-          "authsource" => "ENUM('mailcow', 'keycloak', 'generic-oidc', 'ldap') DEFAULT 'mailcow'",
+          "authsource" => "ENUM('maimail', 'keycloak', 'generic-oidc', 'ldap') DEFAULT 'maimail'",
           "created" => "DATETIME(0) NOT NULL DEFAULT NOW(0)",
           "modified" => "DATETIME ON UPDATE CURRENT_TIMESTAMP",
           "active" => "TINYINT(1) NOT NULL DEFAULT '1'"

@@ -43,7 +43,7 @@ return 0
 
 # General DNS Resolve Check against Unbound Resolver himself
 function check_dns() {
-declare -a domains=("fuzzy.mailcow.email" "github.com" "hub.docker.com")
+declare -a domains=("fuzzy.maimail.email" "github.com" "hub.docker.com")
 local fail_tolerance=1
 local failures=0
 
