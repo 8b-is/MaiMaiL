@@ -327,6 +327,17 @@ if (isset($_GET['query'])) {
         case "mta-sts":
           process_add_return(mailbox('add', 'mta_sts', $attr));
         break;
+        case "llm":
+          // Trigger LLM email analysis
+          switch ($object) {
+            case "analyze":
+              process_add_return(llm('analyze', $attr));
+            break;
+            default:
+              process_add_return(llm('analyze', $attr));
+            break;
+          }
+        break;
         // return no route found if no case is matched
         default:
           http_response_code(404);
@@ -1407,6 +1418,31 @@ if (isset($_GET['query'])) {
               break;
             }
           break;
+          case "llm":
+            // LLM analysis and stats
+            switch ($object) {
+              case "analysis":
+                $data = $_GET;
+                $data['category'] = 'analysis';
+                process_get_return(llm('get', $data));
+              break;
+              case "stats":
+                process_get_return(llm('get', array('category' => 'stats')));
+              break;
+              case "config":
+                process_get_return(llm('get', array('category' => 'config')));
+              break;
+              case "preferences":
+                process_get_return(llm('get', array('category' => 'preferences', 'username' => $extra)));
+              break;
+              case "health":
+                process_get_return(llm('get', array('category' => 'health')));
+              break;
+              default:
+                process_get_return(llm('get', array('category' => 'analysis')));
+              break;
+            }
+          break;
           case "alias-domain":
             switch ($object) {
               case "all":
@@ -1885,6 +1921,20 @@ if (isset($_GET['query'])) {
         break;
         case "quarantine":
           process_edit_return(quarantine('edit', $attr));
+        break;
+        case "llm":
+          // Edit LLM configuration or preferences
+          switch ($object) {
+            case "config":
+              process_edit_return(llm('edit', array_merge(array('category' => 'config'), array('items' => $attr))));
+            break;
+            case "preferences":
+              process_edit_return(llm('edit', array_merge(array('category' => 'preferences'), $attr)));
+            break;
+            default:
+              process_edit_return(llm('edit', $attr));
+            break;
+          }
         break;
         case "quota_notification":
           process_edit_return(quota_notification('edit', $attr));

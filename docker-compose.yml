@@ -656,6 +656,76 @@ services:
           aliases:
             - ofelia
 
+    ollama-mailcow:
+      image: ollama/ollama:latest
+      restart: always
+      environment:
+        - TZ=${TZ}
+        - OLLAMA_HOST=0.0.0.0
+      volumes:
+        - ollama-vol-1:/root/.ollama
+      networks:
+        mailcow-network:
+          ipv4_address: ${IPV4_NETWORK:-172.22.1}.240
+          aliases:
+            - ollama
+      deploy:
+        resources:
+          reservations:
+            devices:
+              - driver: nvidia
+                count: all
+                capabilities: [gpu]
+      healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:11434"]
+        interval: 30s
+        timeout: 10s
+        retries: 3
+        start_period: 40s
+
+    llm-processor-mailcow:
+      build: ./data/Dockerfiles/llm-processor
+      restart: always
+      depends_on:
+        - mysql-mailcow
+        - redis-mailcow
+        - dovecot-mailcow
+        - ollama-mailcow
+      environment:
+        - TZ=${TZ}
+        - OLLAMA_HOST=ollama-mailcow:11434
+        - OLLAMA_MODEL=${OLLAMA_MODEL:-llama3.2:3b}
+        - MYSQL_HOST=mysql-mailcow
+        - MYSQL_PORT=3306
+        - MYSQL_USER=${DBUSER}
+        - MYSQL_PASSWORD=${DBPASS}
+        - MYSQL_DATABASE=${DBNAME}
+        - REDIS_HOST=redis-mailcow
+        - REDIS_PORT=6379
+        - REDIS_PASSWORD=${REDISPASS}
+        - VMAIL_PATH=/var/vmail
+        - PROCESSING_INTERVAL=${LLM_PROCESSING_INTERVAL:-60}
+        - BATCH_SIZE=${LLM_BATCH_SIZE:-10}
+      volumes:
+        - vmail-vol-1:/var/vmail:ro
+        - ./data/conf/llm:/config:z
+      networks:
+        mailcow-network:
+          ipv4_address: ${IPV4_NETWORK:-172.22.1}.241
+          aliases:
+            - llm-processor
+      labels:
+        ofelia.enabled: "true"
+        ofelia.job-exec.llm_batch_process.schedule: "@every ${LLM_PROCESSING_INTERVAL:-60}s"
+        ofelia.job-exec.llm_batch_process.no-overlap: "true"
+        ofelia.job-exec.llm_batch_process.command: "/usr/local/bin/python /app/processor.py batch"
+      healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+        interval: 30s
+        timeout: 10s
+        retries: 3
+        start_period: 60s
+
 networks:
   mailcow-network:
     driver: bridge
@@ -681,3 +751,4 @@ volumes:
   sogo-web-vol-1:
   sogo-userdata-backup-vol-1:
   clamd-db-vol-1:
+  ollama-vol-1:
