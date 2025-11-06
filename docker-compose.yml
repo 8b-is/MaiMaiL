@@ -714,11 +714,7 @@ services:
           ipv4_address: ${IPV4_NETWORK:-172.22.1}.241
           aliases:
             - llm-processor
-      labels:
-        ofelia.enabled: "true"
-        ofelia.job-exec.llm_batch_process.schedule: "@every ${LLM_PROCESSING_INTERVAL:-60}s"
-        ofelia.job-exec.llm_batch_process.no-overlap: "true"
-        ofelia.job-exec.llm_batch_process.command: "/usr/local/bin/python /app/processor.py batch"
+      # Ofelia job labels removed to avoid duplicate processing triggers.
       healthcheck:
         test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
         interval: 30s
