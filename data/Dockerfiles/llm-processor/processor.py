@@ -396,7 +396,7 @@ async def health_check():
         ollama_status = "ok"
         try:
             processor.ollama_client.list()
-        except:
+        except Exception:
             ollama_status = "error"
 
         # Check MySQL
