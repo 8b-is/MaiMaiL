@@ -33,13 +33,29 @@ import uvicorn
 from bs4 import BeautifulSoup
 
 # Configure logging
+LOG_FILE_PATH = '/var/log/llm-processor/processor.log'
+LOG_DIR = os.path.dirname(LOG_FILE_PATH)
+
+# Ensure log directory exists
+try:
+    os.makedirs(LOG_DIR, exist_ok=True)
+except Exception as e:
+    # If we can't create the directory, we'll log only to stdout
+    print(f"WARNING: Could not create log directory {LOG_DIR}: {e}", file=sys.stderr)
+
+handlers = []
+try:
+    file_handler = logging.FileHandler(LOG_FILE_PATH)
+    handlers.append(file_handler)
+except Exception as e:
+    print(f"WARNING: Could not create log file handler at {LOG_FILE_PATH}: {e}", file=sys.stderr)
+
+handlers.append(logging.StreamHandler(sys.stdout))
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('/var/log/llm-processor/processor.log'),
-        logging.StreamHandler(sys.stdout)
-    ]
+    handlers=handlers
 )
 logger = logging.getLogger(__name__)
 
