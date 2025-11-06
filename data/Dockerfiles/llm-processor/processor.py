@@ -420,7 +420,7 @@ async def health_check():
             cursor = processor.db.cursor()
             cursor.execute("SELECT 1")
             cursor.close()
-        except:
+        except Exception:
             mysql_status = "error"
 
         # Check Redis
