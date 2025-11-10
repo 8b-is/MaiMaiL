@@ -14,6 +14,11 @@
   const componentStatus = {
     ok: { color: 'success', icon: '✓' },
     error: { color: 'danger', icon: '✗' },
+  } as const;
+
+  const colorClasses: Record<'success' | 'danger', string> = {
+    success: 'text-success-500',
+    danger: 'text-danger-500',
   };
 </script>
 
@@ -34,7 +39,7 @@
     <div class="grid grid-cols-2 gap-4">
       <!-- Ollama Status -->
       <div class="flex items-center gap-2">
-        <span class={`text-${componentStatus[health.ollama].color}-500 font-bold`}>
+        <span class={`${colorClasses[componentStatus[health.ollama].color]} font-bold`}>
           {componentStatus[health.ollama].icon}
         </span>
         <span class="text-sm">Ollama</span>
@@ -42,7 +47,7 @@
 
       <!-- MySQL Status -->
       <div class="flex items-center gap-2">
-        <span class={`text-${componentStatus[health.mysql].color}-500 font-bold`}>
+        <span class={`${colorClasses[componentStatus[health.mysql].color]} font-bold`}>
           {componentStatus[health.mysql].icon}
         </span>
         <span class="text-sm">MySQL</span>
@@ -50,7 +55,7 @@
 
       <!-- Redis Status -->
       <div class="flex items-center gap-2">
-        <span class={`text-${componentStatus[health.redis].color}-500 font-bold`}>
+        <span class={`${colorClasses[componentStatus[health.redis].color]} font-bold`}>
           {componentStatus[health.redis].icon}
         </span>
         <span class="text-sm">Redis</span>
