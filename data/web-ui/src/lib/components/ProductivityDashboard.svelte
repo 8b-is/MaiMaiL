@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import Card from './Card.svelte';
-  import { apiClient } from '$lib/api/client';
+  import { buildLlmApiUrl } from '$lib/config/llm';
 
   let analytics: any = null;
   let loading = true;
@@ -14,12 +14,13 @@
   async function loadAnalytics() {
     try {
       loading = true;
-      const response = await fetch('http://llm-processor-mailcow:8080/analytics/productivity');
+      const url = buildLlmApiUrl('/analytics/productivity');
+      const response = await fetch(url);
       if (response.ok) {
         analytics = await response.json();
       }
     } catch (err) {
-      error = 'Failed to load productivity analytics';
+      error = `Failed to load productivity analytics: ${err}`;
       console.error(err);
     } finally {
       loading = false;
@@ -122,12 +123,13 @@
       <h3 class="text-xl font-bold mb-4">Daily Email Volume (30 days)</h3>
       <div class="space-y-1">
         {#each analytics.daily_volume.slice(0, 15) as day}
+          {@const maxCount = Math.max(1, ...analytics.daily_volume.map(d => d.count))}
           <div class="flex items-center gap-4">
             <span class="text-sm text-gray-600 w-32">{day.date}</span>
             <div class="flex-1 bg-gray-200 rounded-full h-6 overflow-hidden">
               <div
                 class="bg-blue-600 h-full rounded-full transition-all"
-                style="width: {Math.min(100, (day.count / Math.max(...analytics.daily_volume.map(d => d.count))) * 100)}%"
+                style="width: {Math.min(100, (day.count / maxCount) * 100)}%"
               ></div>
             </div>
             <span class="text-sm font-semibold w-16 text-right">{day.count}</span>
@@ -141,17 +143,21 @@
       <h3 class="text-xl font-bold mb-4">Top Email Categories (7 days)</h3>
       <div class="space-y-3">
         {#each analytics.category_distribution.slice(0, 10) as category}
-          {@const cats = JSON.parse(category.categories || '[]')}
-          <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-            <div class="flex flex-wrap gap-2">
-              {#each cats as cat}
-                <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                  {cat}
-                </span>
-              {/each}
+          {#try}
+            {@const cats = JSON.parse(category.categories || '[]')}
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div class="flex flex-wrap gap-2">
+                {#each cats as cat}
+                  <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                    {cat}
+                  </span>
+                {/each}
+              </div>
+              <span class="text-lg font-bold text-gray-700">{category.count}</span>
             </div>
-            <span class="text-lg font-bold text-gray-700">{category.count}</span>
-          </div>
+          {:catch}
+            <!-- Silently ignore JSON parse errors -->
+          {/try}
         {/each}
       </div>
     </Card>

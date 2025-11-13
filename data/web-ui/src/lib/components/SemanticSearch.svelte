@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import Card from './Card.svelte';
   import Badge from './Badge.svelte';
+  import { buildLlmApiUrl } from '$lib/config/llm';
 
   let searchQuery = '';
   let searchResults: any[] = [];
@@ -14,10 +15,11 @@
     try {
       searching = true;
       hasSearched = true;
-      const response = await fetch(
-        `http://llm-processor-mailcow:8080/semantic-search?query=${encodeURIComponent(searchQuery)}&limit=20`,
-        { method: 'POST' }
-      );
+      const url = buildLlmApiUrl('/semantic-search', {
+        query: searchQuery,
+        limit: '20'
+      });
+      const response = await fetch(url, { method: 'POST' });
 
       if (response.ok) {
         const data = await response.json();
@@ -37,9 +39,13 @@
     }
   }
 
+  function escapeRegExp(string: string): string {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
   function highlightMatch(text: string, query: string): string {
     if (!query || !text) return text;
-    const regex = new RegExp(`(${query})`, 'gi');
+    const regex = new RegExp(`(${escapeRegExp(query)})`, 'gi');
     return text.replace(regex, '<mark class="bg-yellow-200">$1</mark>');
   }
 </script>
@@ -156,14 +162,18 @@
 
               <!-- Categories -->
               {#if result.categories}
-                {@const cats = JSON.parse(result.categories || '[]')}
-                <div class="flex flex-wrap gap-2">
-                  {#each cats as category}
-                    <span class="px-2 py-1 bg-blue-50 text-blue-700 rounded text-sm">
-                      {category}
-                    </span>
-                  {/each}
-                </div>
+                {#try}
+                  {@const cats = JSON.parse(result.categories || '[]')}
+                  <div class="flex flex-wrap gap-2">
+                    {#each cats as category}
+                      <span class="px-2 py-1 bg-blue-50 text-blue-700 rounded text-sm">
+                        {category}
+                      </span>
+                    {/each}
+                  </div>
+                {:catch}
+                  <!-- Silently ignore JSON parse errors -->
+                {/try}
               {/if}
 
               <!-- Metadata -->

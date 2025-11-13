@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import Card from './Card.svelte';
   import Badge from './Badge.svelte';
+  import { buildLlmApiUrl } from '$lib/config/llm';
 
   interface Task {
     email_id: string;
@@ -25,7 +26,8 @@
   async function loadTasks() {
     try {
       loading = true;
-      const response = await fetch('http://llm-processor-mailcow:8080/stats');
+      const url = buildLlmApiUrl('/stats');
+      const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
         const emails = data.recent_analyses || [];
