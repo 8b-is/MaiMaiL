@@ -6,6 +6,7 @@
 
   let emails: any[] = [];
   let loading = true;
+  let error: string | null = null;
   let filter: 'all' | 'urgent' | 'tasks' | 'meetings' = 'all';
   let sortBy: 'date' | 'priority' | 'sentiment' = 'date';
 
@@ -16,13 +17,17 @@
   async function loadEmails() {
     try {
       loading = true;
+      error = null;
       const url = buildLlmApiUrl('/stats');
       const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
         emails = data.recent_analyses || [];
+      } else {
+        error = `Failed to load emails: ${response.statusText}`;
       }
     } catch (err) {
+      error = `Failed to load emails: ${err}`;
       console.error('Failed to load emails:', err);
     } finally {
       loading = false;
@@ -122,6 +127,24 @@
     <Card>
       <div class="flex items-center justify-center py-12">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    </Card>
+  {:else if error}
+    <Card>
+      <div class="flex items-center justify-between p-4 bg-red-50 border border-red-200 rounded-lg">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">⚠️</span>
+          <div>
+            <p class="font-semibold text-red-800">Error Loading Emails</p>
+            <p class="text-sm text-red-600">{error}</p>
+          </div>
+        </div>
+        <button
+          on:click={loadEmails}
+          class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium"
+        >
+          Retry
+        </button>
       </div>
     </Card>
   {:else if filteredEmails.length === 0}
