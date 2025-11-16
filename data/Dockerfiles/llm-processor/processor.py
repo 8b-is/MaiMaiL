@@ -659,7 +659,7 @@ Respond ONLY with valid JSON, no additional text."""
                 mailbox,
                 email_id,
                 analysis.get('summary'),
-                json.dumps(analysis.get('categories', [])),
+                json.dumps(analysis.get('categories')) if analysis.get('categories') else None,
                 analysis.get('priority_score', 5),
                 analysis.get('is_phishing', False),
                 analysis.get('phishing_score', 0.0),
