@@ -1,0 +1,27 @@
+{
+  "session_id": "1df9af14-def8-4859-a8e5-25fb99f82f33",
+  "last_saved": "2025-11-06T07:02:46.180458102Z",
+  "working_directory": "/aidata/MaiMaiL",
+  "project_context": {
+    "project_name": "unknown",
+    "project_type": "unknown",
+    "key_files": [],
+    "dependencies": [],
+    "current_focus": ""
+  },
+  "file_history": [],
+  "tokenization_rules": {
+    "dist": 131,
+    ".git": 129,
+    "node_modules": 128,
+    "target": 130
+  },
+  "insights": [],
+  "philosophy": {
+    "sid_waves": true,
+    "vic_sprites": true,
+    "c64_nostalgia": "A gentleman and a scholar indeed!"
+  },
+  "todos": [],
+  "notes": ""
+}
