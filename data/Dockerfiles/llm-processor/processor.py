@@ -985,6 +985,8 @@ async def semantic_search(query: str, limit: int = 10):
         raise HTTPException(status_code=400, detail="Query parameter must be a non-empty string.")
     if len(query) > 512:
         raise HTTPException(status_code=400, detail="Query parameter exceeds maximum length of 512 characters.")
+    if not isinstance(limit, int) or limit < 1 or limit > 100:
+        raise HTTPException(status_code=400, detail="Limit parameter must be an integer between 1 and 100.")
     
     try:
         # Use database-level filtering for better performance
