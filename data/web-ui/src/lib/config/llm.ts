@@ -1,0 +1,20 @@
+/**
+ * LLM Processor API Configuration
+ */
+export const LLM_API_BASE_URL =
+  import.meta.env.VITE_LLM_API_BASE_URL || 'http://llm-processor-mailcow:8080';
+
+/**
+ * Build a full URL for an LLM API endpoint
+ */
+export function buildLlmApiUrl(path: string, params?: Record<string, string>): string {
+  // Ensure path starts with a leading slash
+export function buildLlmApiUrl(path: string, params?: Record<string, string | number | boolean>): string {
+  const url = new URL(path, LLM_API_BASE_URL);
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      url.searchParams.append(key, String(value));
+    });
+  }
+  return url.toString();
+}

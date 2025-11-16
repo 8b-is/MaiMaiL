@@ -2,8 +2,7 @@
   import { onMount } from 'svelte';
   import Card from './Card.svelte';
   import Badge from './Badge.svelte';
-
-  export let mailbox: string = '';
+  import { buildLlmApiUrl } from '$lib/config/llm';
 
   let emails: any[] = [];
   let loading = true;
@@ -17,7 +16,8 @@
   async function loadEmails() {
     try {
       loading = true;
-      const response = await fetch('http://llm-processor-mailcow:8080/stats');
+      const url = buildLlmApiUrl('/stats');
+      const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
         emails = data.recent_analyses || [];
@@ -155,14 +155,18 @@
 
               <!-- Categories -->
               {#if email.categories}
-                {@const cats = JSON.parse(email.categories || '[]')}
-                <div class="flex flex-wrap gap-2 mb-2">
-                  {#each cats as category}
-                    <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded text-sm">
-                      {category}
-                    </span>
-                  {/each}
-                </div>
+                {#try}
+                  {@const cats = JSON.parse(email.categories || '[]')}
+                  <div class="flex flex-wrap gap-2 mb-2">
+                    {#each cats as category}
+                      <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded text-sm">
+                        {category}
+                      </span>
+                    {/each}
+                  </div>
+                {:catch}
+                  <!-- Silently ignore JSON parse errors -->
+                {/try}
               {/if}
 
               <!-- AI Insights -->
