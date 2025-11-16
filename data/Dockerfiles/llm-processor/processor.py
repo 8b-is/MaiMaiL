@@ -288,7 +288,7 @@ class LLMProcessor:
         negative_count = sum(1 for word in negative_words if word in text_lower)
 
         # Calculate sentiment score (-1 to 1)
-        # If no sentiment words found (total == 0), default to neutral (0.0)
+        # If no sentiment words found (total == 0), neutral sentiment (0.0) is set in the else branch below
         total = positive_count + negative_count
         if total > 0:
             sentiment_score = (positive_count - negative_count) / total
