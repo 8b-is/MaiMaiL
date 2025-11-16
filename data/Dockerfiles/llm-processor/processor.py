@@ -42,7 +42,6 @@ from fastapi import FastAPI, HTTPException, BackgroundTasks
 from pydantic import BaseModel, EmailStr
 import uvicorn
 from bs4 import BeautifulSoup
-import numpy as np
 from dateutil import parser as date_parser
 
 # Configure logging
@@ -234,7 +233,7 @@ class LLMProcessor:
                         try:
                             parsed = date_parser.parse(date_str, fuzzy=True)
                             return parsed.isoformat()
-                        except:
+                        except Exception:
                             pass
         except Exception as e:
             logger.debug(f"Date extraction error: {e}")
@@ -289,6 +288,7 @@ class LLMProcessor:
         negative_count = sum(1 for word in negative_words if word in text_lower)
 
         # Calculate sentiment score (-1 to 1)
+        # If no sentiment words found (total == 0), default to neutral (0.0)
         total = positive_count + negative_count
         if total > 0:
             sentiment_score = (positive_count - negative_count) / total
@@ -325,9 +325,12 @@ class LLMProcessor:
         email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
         entities['emails'] = list(set(re.findall(email_pattern, text)))[:10]
 
-        # Extract phone numbers
-        phone_pattern = r'\b(?:\+?1[-.]?)?\(?([0-9]{3})\)?[-.]?([0-9]{3})[-.]?([0-9]{4})\b'
-        entities['phones'] = list(set(['-'.join(m) for m in re.findall(phone_pattern, text)]))[:10]
+        # Extract phone numbers (international and local formats)
+        # Matches formats like: +1-234-567-8900, (234) 567-8900, 234.567.8900, +44 20 7123 4567
+        phone_pattern = r'(?:(?:\+?\d{1,3}[\s\-\.]?)?(?:\(?\d{1,4}\)?[\s\-\.]?)?\d{1,4}[\s\-\.]?\d{1,4}[\s\-\.]?\d{1,9})'
+        potential_phones = re.findall(phone_pattern, text)
+        # Filter to only include numbers with at least 10 digits to avoid false positives
+        entities['phones'] = list(set([p for p in potential_phones if len(re.sub(r'\D', '', p)) >= 10]))[:10]
 
         # Extract URLs
         url_pattern = r'https?://(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&/=]*)'
@@ -666,13 +669,13 @@ Respond ONLY with valid JSON, no additional text."""
                 datetime.now(),
                 # Year 2200 enhancements
                 analysis.get('conversation_id'),
-                json.dumps(analysis.get('tasks', [])),
+                json.dumps(analysis.get('tasks')) if analysis.get('tasks') else None,
                 json.dumps(analysis.get('meeting_request')) if analysis.get('meeting_request') else None,
                 analysis.get('tone', 'neutral'),
                 analysis.get('sentiment_score', 0.0),
                 analysis.get('language', 'english'),
-                json.dumps(analysis.get('entities', {})),
-                json.dumps(analysis.get('smart_replies', [])),
+                json.dumps(analysis.get('entities')) if analysis.get('entities') else None,
+                json.dumps(analysis.get('smart_replies')) if analysis.get('smart_replies') else None,
                 analysis.get('thread_context'),
                 analysis.get('predicted_response_time', 120)
             )
@@ -706,12 +709,24 @@ Respond ONLY with valid JSON, no additional text."""
 
             for column_name, column_type in new_columns:
                 try:
-                    cursor.execute(f"""
-                        ALTER TABLE llm_email_analysis
-                        ADD COLUMN IF NOT EXISTS {column_name} {column_type}
-                    """)
+                    # Check if column exists first (compatible with all MySQL versions)
+                    cursor.execute("""
+                        SELECT COUNT(*) as col_exists
+                        FROM information_schema.COLUMNS
+                        WHERE TABLE_SCHEMA = DATABASE()
+                          AND TABLE_NAME = 'llm_email_analysis'
+                          AND COLUMN_NAME = %s
+                    """, (column_name,))
+                    result = cursor.fetchone()
+                    
+                    if result['col_exists'] == 0:
+                        # Column doesn't exist, add it
+                        cursor.execute(f"""
+                            ALTER TABLE llm_email_analysis
+                            ADD COLUMN {column_name} {column_type}
+                        """)
                 except Exception as e:
-                    # Column might already exist or ALTER TABLE syntax varies
+                    # Column might already exist or other schema issue
                     logger.debug(f"Schema update for {column_name}: {e}")
 
             self.db.commit()
@@ -955,59 +970,72 @@ async def get_stats():
 
 @app.post("/semantic-search")
 async def semantic_search(query: str, limit: int = 10):
-    """Semantic search across emails using embeddings"""
+    """
+    Semantic search across emails using text matching and filtering.
+    
+    Args:
+        query: Search query string (required, max 512 chars)
+        limit: Maximum number of results to return (default: 10)
+    
+    Returns:
+        Dict containing query, total_results, and results array with relevance scores
+    """
+    # Input validation
+    if query is None or not isinstance(query, str) or query.strip() == "":
+        raise HTTPException(status_code=400, detail="Query parameter must be a non-empty string.")
+    if len(query) > 512:
+        raise HTTPException(status_code=400, detail="Query parameter exceeds maximum length of 512 characters.")
+    
     try:
-        # Generate embedding for query using Ollama
-        query_embedding = processor.ollama_client.embeddings(
-            model='llama3.2:3b',
-            prompt=query
-        )
-
-        # Get all email summaries with their embeddings from cache or generate
+        # Use database-level filtering for better performance
         cursor = processor.db.cursor(dictionary=True)
+        like_query = f"%{query}%"
+        
+        # Search across summary, categories, and tone using SQL LIKE
         cursor.execute("""
             SELECT mailbox, email_id, summary, categories, priority_score,
-                   tone, sentiment_score, analyzed_at
+                   tone, sentiment_score, language, analyzed_at
             FROM llm_email_analysis
             WHERE summary IS NOT NULL
+              AND (
+                  summary LIKE %s
+                  OR categories LIKE %s
+                  OR tone LIKE %s
+              )
             ORDER BY analyzed_at DESC
             LIMIT 100
-        """)
+        """, (like_query, like_query, like_query))
         emails = cursor.fetchall()
         cursor.close()
 
-        # Calculate similarity scores (simple cosine similarity with summary text matching)
+        # Calculate relevance scores based on which fields matched
         results = []
         query_lower = query.lower()
         for email in emails:
-            summary = email.get('summary', '')
-            if not summary:
-                continue
-
-            # Simple relevance scoring
             score = 0.0
+            summary = email.get('summary', '')
+            categories = email.get('categories', '')
+            tone = email.get('tone', '')
+            
+            # Summary match (highest weight)
             if query_lower in summary.lower():
                 score += 1.0
-
-            # Check categories
-            try:
-                categories = json.loads(email.get('categories', '[]'))
-                if any(query_lower in cat.lower() for cat in categories):
-                    score += 0.5
-            except:
-                pass
-
-            # Check tone match
-            if email.get('tone') and query_lower in email.get('tone', '').lower():
+            
+            # Category match (medium weight)
+            if query_lower in categories.lower():
+                score += 0.5
+            
+            # Tone match (low weight)
+            if query_lower in tone.lower():
                 score += 0.3
-
+            
             if score > 0:
                 results.append({
                     **email,
                     'relevance_score': score
                 })
 
-        # Sort by relevance
+        # Sort by relevance score
         results.sort(key=lambda x: x['relevance_score'], reverse=True)
 
         return {
@@ -1022,7 +1050,15 @@ async def semantic_search(query: str, limit: int = 10):
 
 @app.get("/conversation/{conversation_id}")
 async def get_conversation(conversation_id: str):
-    """Get all emails in a conversation thread"""
+    """
+    Get all emails in a conversation thread.
+    
+    Args:
+        conversation_id: MD5 hash identifying the conversation thread
+    
+    Returns:
+        Dict containing conversation_id, email_count, and emails array ordered by date
+    """
     try:
         cursor = processor.db.cursor(dictionary=True)
         cursor.execute("""
@@ -1048,7 +1084,16 @@ async def get_conversation(conversation_id: str):
 
 @app.get("/analytics/productivity")
 async def get_productivity_analytics():
-    """Get email productivity analytics"""
+    """
+    Get comprehensive email productivity analytics.
+    
+    Returns:
+        Dict containing:
+        - response_metrics: avg response time, total emails, urgent count, active threads
+        - daily_volume: 30-day email count per day
+        - sentiment_trend: 7-day sentiment analysis
+        - category_distribution: Top 10 email categories in last 7 days
+    """
     try:
         cursor = processor.db.cursor(dictionary=True)
 
