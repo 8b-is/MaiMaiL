@@ -16,6 +16,7 @@
 
   let tasks: Task[] = [];
   let loading = true;
+  let error: string | null = null;
   let filter: 'all' | 'pending' | 'urgent' | 'today' = 'pending';
   let groupBy: 'priority' | 'deadline' | 'mailbox' = 'priority';
 
@@ -26,6 +27,7 @@
   async function loadTasks() {
     try {
       loading = true;
+      error = null;
       const url = buildLlmApiUrl('/stats');
       const response = await fetch(url);
       if (response.ok) {
@@ -56,7 +58,8 @@
         }
       }
     } catch (err) {
-      console.error('Failed to load tasks:', err);
+      error = `Failed to load tasks: ${err}`;
+      console.error(err);
     } finally {
       loading = false;
     }
@@ -190,6 +193,12 @@
     <Card>
       <div class="flex items-center justify-center py-12">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    </Card>
+  {:else if error}
+    <Card>
+      <div class="text-center py-8 text-red-600">
+        {error}
       </div>
     </Card>
   {:else if Object.keys(groupedTasks).length === 0}
