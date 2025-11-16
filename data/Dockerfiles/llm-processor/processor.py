@@ -288,11 +288,11 @@ class LLMProcessor:
         negative_count = sum(1 for word in negative_words if word in text_lower)
 
         # Calculate sentiment score (-1 to 1)
-        # If no sentiment words found (total == 0), default to neutral (0.0)
         total = positive_count + negative_count
         if total > 0:
             sentiment_score = (positive_count - negative_count) / total
         else:
+            # No sentiment words found, default to neutral
             sentiment_score = 0.0
 
         # Determine tone
@@ -326,11 +326,10 @@ class LLMProcessor:
         entities['emails'] = list(set(re.findall(email_pattern, text)))[:10]
 
         # Extract phone numbers (international and local formats)
-        # Matches formats like: +1-234-567-8900, (234) 567-8900, 234.567.8900, +44 20 7123 4567
-        phone_pattern = r'(?:(?:\+?\d{1,3}[\s\-\.]?)?(?:\(?\d{1,4}\)?[\s\-\.]?)?\d{1,4}[\s\-\.]?\d{1,4}[\s\-\.]?\d{1,9})'
+        # More specific phone pattern for common formats (3-3-4 digit patterns)
+        phone_pattern = r'(?:\+\d{1,3}[\s\-\.]?)?\(?(\d{3})\)?[\s\-\.]?(\d{3})[\s\-\.]?(\d{4})\b'
         potential_phones = re.findall(phone_pattern, text)
-        # Filter to only include numbers with at least 10 digits to avoid false positives
-        entities['phones'] = list(set([p for p in potential_phones if len(re.sub(r'\D', '', p)) >= 10]))[:10]
+        entities['phones'] = list(set(['-'.join(m) for m in potential_phones]))[:10]
 
         # Extract URLs
         url_pattern = r'https?://(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&/=]*)'
@@ -659,7 +658,7 @@ Respond ONLY with valid JSON, no additional text."""
                 mailbox,
                 email_id,
                 analysis.get('summary'),
-                json.dumps(analysis.get('categories', [])),
+                json.dumps(analysis.get('categories')) if analysis.get('categories') else None,
                 analysis.get('priority_score', 5),
                 analysis.get('is_phishing', False),
                 analysis.get('phishing_score', 0.0),
@@ -713,10 +712,10 @@ Respond ONLY with valid JSON, no additional text."""
                     cursor.execute("""
                         SELECT COUNT(*) as col_exists
                         FROM information_schema.COLUMNS
-                        WHERE TABLE_SCHEMA = DATABASE()
+                        WHERE TABLE_SCHEMA = %s
                           AND TABLE_NAME = 'llm_email_analysis'
                           AND COLUMN_NAME = %s
-                    """, (column_name,))
+                    """, (MYSQL_DATABASE, column_name))
                     result = cursor.fetchone()
                     
                     if result['col_exists'] == 0:
@@ -985,11 +984,15 @@ async def semantic_search(query: str, limit: int = 10):
         raise HTTPException(status_code=400, detail="Query parameter must be a non-empty string.")
     if len(query) > 512:
         raise HTTPException(status_code=400, detail="Query parameter exceeds maximum length of 512 characters.")
+    if not isinstance(limit, int) or limit < 1 or limit > 100:
+        raise HTTPException(status_code=400, detail="Limit parameter must be an integer between 1 and 100.")
     
     try:
         # Use database-level filtering for better performance
         cursor = processor.db.cursor(dictionary=True)
-        like_query = f"%{query}%"
+        # Escape SQL wildcards to prevent unintended pattern matching
+        escaped_query = query.replace('%', r'\%').replace('_', r'\_')
+        like_query = f"%{escaped_query}%"
         
         # Search across summary, categories, and tone using SQL LIKE
         cursor.execute("""
