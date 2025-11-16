@@ -288,6 +288,7 @@ class LLMProcessor:
         negative_count = sum(1 for word in negative_words if word in text_lower)
 
         # Calculate sentiment score (-1 to 1)
+        # If no sentiment words found (total == 0), neutral sentiment (0.0) is set in the else branch below
         total = positive_count + negative_count
         if total > 0:
             sentiment_score = (positive_count - negative_count) / total
@@ -326,7 +327,8 @@ class LLMProcessor:
         entities['emails'] = list(set(re.findall(email_pattern, text)))[:10]
 
         # Extract phone numbers (international and local formats)
-        # More specific phone pattern for common formats (3-3-4 digit patterns)
+        # Matches formats like: +1-234-567-8900, (234) 567-8900, 234.567.8900, +44 20 7123 4567
+        # More specific phone pattern for common formats
         phone_pattern = r'(?:\+\d{1,3}[\s\-\.]?)?\(?(\d{3})\)?[\s\-\.]?(\d{3})[\s\-\.]?(\d{4})\b'
         potential_phones = re.findall(phone_pattern, text)
         entities['phones'] = list(set(['-'.join(m) for m in potential_phones]))[:10]
@@ -715,7 +717,7 @@ Respond ONLY with valid JSON, no additional text."""
                         WHERE TABLE_SCHEMA = %s
                           AND TABLE_NAME = 'llm_email_analysis'
                           AND COLUMN_NAME = %s
-                    """, (MYSQL_DATABASE, column_name))
+                    """, (self.db.database, column_name))
                     result = cursor.fetchone()
                     
                     if result['col_exists'] == 0:
