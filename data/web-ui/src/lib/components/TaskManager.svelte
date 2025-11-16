@@ -16,6 +16,7 @@
 
   let tasks: Task[] = [];
   let loading = true;
+  let error: string | null = null;
   let filter: 'all' | 'pending' | 'urgent' | 'today' = 'pending';
   let groupBy: 'priority' | 'deadline' | 'mailbox' = 'priority';
 
@@ -26,6 +27,7 @@
   async function loadTasks() {
     try {
       loading = true;
+      error = null;
       const url = buildLlmApiUrl('/stats');
       const response = await fetch(url);
       if (response.ok) {
@@ -54,8 +56,11 @@
             }
           }
         }
+      } else {
+        error = `Failed to load tasks: ${response.statusText}`;
       }
     } catch (err) {
+      error = `Failed to load tasks: ${err}`;
       console.error('Failed to load tasks:', err);
     } finally {
       loading = false;
@@ -190,6 +195,19 @@
     <Card>
       <div class="flex items-center justify-center py-12">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    </Card>
+  {:else if error}
+    <Card>
+      <div class="text-center py-12">
+        <p class="text-red-600 font-medium mb-2">Error loading tasks</p>
+        <p class="text-gray-600 text-sm">{error}</p>
+        <button 
+          class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          on:click={() => loadTasks()}
+        >
+          Retry
+        </button>
       </div>
     </Card>
   {:else if Object.keys(groupedTasks).length === 0}
