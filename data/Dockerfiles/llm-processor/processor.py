@@ -996,16 +996,16 @@ async def semantic_search(query: str, limit: int = 10):
         escaped_query = query.replace('%', r'\%').replace('_', r'\_')
         like_query = f"%{escaped_query}%"
         
-        # Search across summary, categories, and tone using SQL LIKE
+        # Search across summary, categories, and tone using case-insensitive SQL LIKE
         cursor.execute("""
             SELECT mailbox, email_id, summary, categories, priority_score,
                    tone, sentiment_score, language, analyzed_at
             FROM llm_email_analysis
             WHERE summary IS NOT NULL
               AND (
-                  summary LIKE %s
-                  OR categories LIKE %s
-                  OR tone LIKE %s
+                  LOWER(summary) LIKE %s
+                  OR LOWER(categories) LIKE %s
+                  OR LOWER(tone) LIKE %s
               )
             ORDER BY analyzed_at DESC
             LIMIT 100
