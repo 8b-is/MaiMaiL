@@ -122,8 +122,8 @@
     <Card>
       <h3 class="text-xl font-bold mb-4">Daily Email Volume (30 days)</h3>
       <div class="space-y-1">
+        {@const maxCount = Math.max(1, ...analytics.daily_volume.map(d => d.count))}
         {#each analytics.daily_volume.slice(0, 15) as day}
-          {@const maxCount = Math.max(1, ...analytics.daily_volume.map(d => d.count))}
           <div class="flex items-center gap-4">
             <span class="text-sm text-gray-600 w-32">{day.date}</span>
             <div class="flex-1 bg-gray-200 rounded-full h-6 overflow-hidden">
