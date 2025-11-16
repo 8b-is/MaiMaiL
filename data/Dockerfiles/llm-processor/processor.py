@@ -713,10 +713,10 @@ Respond ONLY with valid JSON, no additional text."""
                     cursor.execute("""
                         SELECT COUNT(*) as col_exists
                         FROM information_schema.COLUMNS
-                        WHERE TABLE_SCHEMA = DATABASE()
+                        WHERE TABLE_SCHEMA = %s
                           AND TABLE_NAME = 'llm_email_analysis'
                           AND COLUMN_NAME = %s
-                    """, (column_name,))
+                    """, (self.db.database, column_name))
                     result = cursor.fetchone()
                     
                     if result['col_exists'] == 0:
