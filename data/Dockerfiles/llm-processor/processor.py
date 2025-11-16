@@ -989,7 +989,9 @@ async def semantic_search(query: str, limit: int = 10):
     try:
         # Use database-level filtering for better performance
         cursor = processor.db.cursor(dictionary=True)
-        like_query = f"%{query}%"
+        # Escape SQL wildcards to treat them as literal characters
+        escaped_query = query.replace('%', r'\%').replace('_', r'\_')
+        like_query = f"%{escaped_query}%"
         
         # Search across summary, categories, and tone using SQL LIKE
         cursor.execute("""
