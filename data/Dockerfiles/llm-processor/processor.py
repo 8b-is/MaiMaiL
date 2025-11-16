@@ -293,6 +293,7 @@ class LLMProcessor:
         if total > 0:
             sentiment_score = (positive_count - negative_count) / total
         else:
+            # No sentiment words found, default to neutral
             sentiment_score = 0.0
 
         # Determine tone
@@ -659,7 +660,7 @@ Respond ONLY with valid JSON, no additional text."""
                 mailbox,
                 email_id,
                 analysis.get('summary'),
-                json.dumps(analysis.get('categories', [])),
+                json.dumps(analysis.get('categories')) if analysis.get('categories') else None,
                 analysis.get('priority_score', 5),
                 analysis.get('is_phishing', False),
                 analysis.get('phishing_score', 0.0),
@@ -985,12 +986,15 @@ async def semantic_search(query: str, limit: int = 10):
         raise HTTPException(status_code=400, detail="Query parameter must be a non-empty string.")
     if len(query) > 512:
         raise HTTPException(status_code=400, detail="Query parameter exceeds maximum length of 512 characters.")
+    if not isinstance(limit, int) or limit < 1 or limit > 100:
+        raise HTTPException(status_code=400, detail="Limit parameter must be an integer between 1 and 100.")
     
     try:
         # Use database-level filtering for better performance
         cursor = processor.db.cursor(dictionary=True)
-        # Use lowercase for case-insensitive matching (consistent with Python scoring logic)
-        like_query = f"%{query.lower()}%"
+        # Escape SQL wildcards to prevent unintended pattern matching
+        escaped_query = query.replace('%', r'\%').replace('_', r'\_')
+        like_query = f"%{escaped_query}%"
         
         # Search across summary, categories, and tone using case-insensitive SQL LIKE
         cursor.execute("""
