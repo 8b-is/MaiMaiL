@@ -327,10 +327,10 @@ class LLMProcessor:
 
         # Extract phone numbers (international and local formats)
         # Matches formats like: +1-234-567-8900, (234) 567-8900, 234.567.8900, +44 20 7123 4567
-        phone_pattern = r'(?:(?:\+?\d{1,3}[\s\-\.]?)?(?:\(?\d{1,4}\)?[\s\-\.]?)?\d{1,4}[\s\-\.]?\d{1,4}[\s\-\.]?\d{1,9})'
+        # More specific phone pattern for common formats
+        phone_pattern = r'(?:\+\d{1,3}[\s\-\.]?)?\(?(\d{3})\)?[\s\-\.]?(\d{3})[\s\-\.]?(\d{4})\b'
         potential_phones = re.findall(phone_pattern, text)
-        # Filter to only include numbers with at least 10 digits to avoid false positives
-        entities['phones'] = list(set([p for p in potential_phones if len(re.sub(r'\D', '', p)) >= 10]))[:10]
+        entities['phones'] = list(set(['-'.join(m) for m in potential_phones]))[:10]
 
         # Extract URLs
         url_pattern = r'https?://(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&/=]*)'
