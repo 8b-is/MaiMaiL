@@ -35,7 +35,7 @@
           <span class="hidden sm:inline">MaiMaiL</span>
         </a>
 
-        <!-- Navigation -->
+        <!-- Navigation - Year 2200 Edition -->
         <nav class="hidden md:flex items-center gap-1">
           <Button variant="ghost" size="sm" href="/">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -44,25 +44,36 @@
             Dashboard
           </Button>
 
-          <Button variant="ghost" size="sm" href="/mailboxes">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
-            </svg>
-            Mailboxes
+          <Button variant="ghost" size="sm" href="/inbox">
+            <span class="text-lg">📨</span>
+            Smart Inbox
+          </Button>
+
+          <Button variant="ghost" size="sm" href="/search">
+            <span class="text-lg">🔍</span>
+            Search
+          </Button>
+
+          <Button variant="ghost" size="sm" href="/tasks">
+            <span class="text-lg">✓</span>
+            Tasks
+          </Button>
+
+          <Button variant="ghost" size="sm" href="/analytics">
+            <span class="text-lg">📊</span>
+            Analytics
+          </Button>
+
+          <Button variant="ghost" size="sm" href="/automation">
+            <span class="text-lg">⚡</span>
+            Automation
           </Button>
 
           <Button variant="ghost" size="sm" href="/llm">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
             </svg>
-            AI Intelligence
-          </Button>
-
-          <Button variant="ghost" size="sm" href="/quarantine">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-            </svg>
-            Quarantine
+            AI Health
           </Button>
         </nav>
       </div>

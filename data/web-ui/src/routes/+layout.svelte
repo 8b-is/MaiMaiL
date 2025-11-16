@@ -16,8 +16,12 @@
 </script>
 
 <svelte:head>
-	<title>MaiMaiL - AI-Powered Email Management</title>
-	<meta name="description" content="Modern email server with AI intelligence" />
+	<title>MaiMaiL 2200 - Future Email Server</title>
+	<meta name="description" content="The most advanced email serving platform from the year 2200" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta name="theme-color" content="#2563eb" />
+	<link rel="manifest" href="/manifest.json" />
+	<link rel="apple-touch-icon" href="/icon-192.png" />
 </svelte:head>
 
 <div class="min-h-screen bg-background">

@@ -5,6 +5,11 @@
 *.iml
 .idea
 .vscode/*
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
 data/assets/ssl-example/*
 data/assets/ssl/*
 data/conf/borgmatic/
