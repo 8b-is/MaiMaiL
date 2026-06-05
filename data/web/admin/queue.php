@@ -2,15 +2,15 @@
 require_once $_SERVER['DOCUMENT_ROOT'] . '/inc/prerequisites.inc.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/inc/triggers.admin.inc.php';
 
-if (isset($_SESSION['mailcow_cc_role']) && $_SESSION['mailcow_cc_role'] == 'domainadmin') {
+if (isset($_SESSION['maimail_cc_role']) && $_SESSION['maimail_cc_role'] == 'domainadmin') {
   header('Location: /domainadmin/mailbox');
   exit();
 }
-elseif (isset($_SESSION['mailcow_cc_role']) && $_SESSION['mailcow_cc_role'] == 'user') {
+elseif (isset($_SESSION['maimail_cc_role']) && $_SESSION['maimail_cc_role'] == 'user') {
   header('Location: /user');
   exit();
 }
-elseif (!isset($_SESSION['mailcow_cc_role']) || $_SESSION['mailcow_cc_role'] != "admin") {
+elseif (!isset($_SESSION['maimail_cc_role']) || $_SESSION['maimail_cc_role'] != "admin") {
   header('Location: /admin');
   exit();
 }

@@ -62,7 +62,7 @@ get_ipv6(){
   local IPV6=
   local IPV6_SRCS=
   local TRY=
-  IPV6_SRCS[0]="ip6.mailcow.email"
+  IPV6_SRCS[0]="ip6.maimail.email"
   IPV6_SRCS[1]="ip6.nevondo.com"
   until [[ ! -z ${IPV6} ]] || [[ ${TRY} -ge 10 ]]; do
     IPV6=$(curl --connect-timeout 3 -m 10 -L6s ${IPV6_SRCS[$RANDOM % ${#IPV6_SRCS[@]} ]} | grep "^\([0-9a-fA-F]\{0,4\}:\)\{1,7\}[0-9a-fA-F]\{0,4\}$")
@@ -110,7 +110,7 @@ function notify_error() {
   THROTTLE=
   [[ -z ${1} ]] && return 1
   # If exists, body will be the content of "/tmp/${1}", even if ${2} is set
-  [[ -z ${2} ]] && BODY="Service was restarted on $(date), please check your mailcow installation." || BODY="$(date) - ${2}"
+  [[ -z ${2} ]] && BODY="Service was restarted on $(date), please check your maimail installation." || BODY="$(date) - ${2}"
   # If exists, mail will be throttled by argument in seconds
   [[ ! -z ${3} ]] && THROTTLE=${3}
   if [[ ! -z ${THROTTLE} ]]; then
@@ -127,7 +127,7 @@ function notify_error() {
   # Some exceptions for subject and body formats
   if [[ ${1} == "fail2ban" ]]; then
     SUBJECT="${BODY}"
-    BODY="Please see netfilter-mailcow for more details and triggered rules."
+    BODY="Please see netfilter-maimail for more details and triggered rules."
   else
     SUBJECT="${WATCHDOG_SUBJECT}: ${1}"
   fi
@@ -159,7 +159,7 @@ function notify_error() {
         log_msg "Sent notification email to ${rcpt}"
       else
         if [[ "${SMTP_VERBOSE}" == "" ]]; then
-          log_msg "Error while sending notification email to ${rcpt}. You can enable verbose logging by setting 'WATCHDOG_VERBOSE=y' in mailcow.conf."
+          log_msg "Error while sending notification email to ${rcpt}. You can enable verbose logging by setting 'WATCHDOG_VERBOSE=y' in maimail.conf."
         else
           log_msg "Error while sending notification email to ${rcpt}."
         fi
@@ -200,12 +200,12 @@ get_container_ip() {
     else
       sleep 0.5
       # get long container id for exact match
-      CONTAINER_ID=($(curl --silent --insecure https://dockerapi.${COMPOSE_PROJECT_NAME}_mailcow-network/containers/json | jq -r ".[] | {name: .Config.Labels[\"com.docker.compose.service\"], project: .Config.Labels[\"com.docker.compose.project\"], id: .Id}" | jq -rc "select( .name | tostring == \"${1}\") | select( .project | tostring | contains(\"${COMPOSE_PROJECT_NAME,,}\")) | .id"))
+      CONTAINER_ID=($(curl --silent --insecure https://dockerapi.${COMPOSE_PROJECT_NAME}_maimail-network/containers/json | jq -r ".[] | {name: .Config.Labels[\"com.docker.compose.service\"], project: .Config.Labels[\"com.docker.compose.project\"], id: .Id}" | jq -rc "select( .name | tostring == \"${1}\") | select( .project | tostring | contains(\"${COMPOSE_PROJECT_NAME,,}\")) | .id"))
       # returned id can have multiple elements (if scaled), shuffle for random test
       CONTAINER_ID=($(printf "%s\n" "${CONTAINER_ID[@]}" | shuf))
       if [[ ! -z ${CONTAINER_ID} ]]; then
         for matched_container in "${CONTAINER_ID[@]}"; do
-          CONTAINER_IPS=($(curl --silent --insecure https://dockerapi.${COMPOSE_PROJECT_NAME}_mailcow-network/containers/${matched_container}/json | jq -r '.NetworkSettings.Networks[].IPAddress'))
+          CONTAINER_IPS=($(curl --silent --insecure https://dockerapi.${COMPOSE_PROJECT_NAME}_maimail-network/containers/${matched_container}/json | jq -r '.NetworkSettings.Networks[].IPAddress'))
           for ip_match in "${CONTAINER_IPS[@]}"; do
             # grep will do nothing if one of these vars is empty
             [[ -z ${ip_match} ]] && continue
@@ -243,12 +243,12 @@ external_checks() {
   trap "[ ${err_count} -gt 1 ] && err_count=$(( ${err_count} - 2 ))" USR1
   while [ ${err_count} -lt ${THRESHOLD} ]; do
     err_c_cur=${err_count}
-    CHECK_REPONSE="$(curl --connect-timeout 3 -m 10 -4 -s https://checks.mailcow.email -X POST -dguid=${GUID} 2> /dev/null)"
+    CHECK_REPONSE="$(curl --connect-timeout 3 -m 10 -4 -s https://checks.maimail.email -X POST -dguid=${GUID} 2> /dev/null)"
     if [[ ! -z "${CHECK_REPONSE}" ]] && [[ "$(echo ${CHECK_REPONSE} | jq -r .response)" == "critical" ]]; then
       echo ${CHECK_REPONSE} | jq -r .out > /tmp/external_checks
       err_count=$(( ${err_count} + 1 ))
     fi
-    CHECK_REPONSE6="$(curl --connect-timeout 3 -m 10 -6 -s https://checks.mailcow.email -X POST -dguid=${GUID} 2> /dev/null)"
+    CHECK_REPONSE6="$(curl --connect-timeout 3 -m 10 -6 -s https://checks.maimail.email -X POST -dguid=${GUID} 2> /dev/null)"
     if [[ ! -z "${CHECK_REPONSE6}" ]] && [[ "$(echo ${CHECK_REPONSE6} | jq -r .response)" == "critical" ]]; then
       echo ${CHECK_REPONSE} | jq -r .out > /tmp/external_checks
       err_count=$(( ${err_count} + 1 ))
@@ -274,10 +274,10 @@ nginx_checks() {
   # Reduce error count by 2 after restarting an unhealthy container
   trap "[ ${err_count} -gt 1 ] && err_count=$(( ${err_count} - 2 ))" USR1
   while [ ${err_count} -lt ${THRESHOLD} ]; do
-    touch /tmp/nginx-mailcow; echo "$(tail -50 /tmp/nginx-mailcow)" > /tmp/nginx-mailcow
-    host_ip=$(get_container_ip nginx-mailcow)
+    touch /tmp/nginx-maimail; echo "$(tail -50 /tmp/nginx-maimail)" > /tmp/nginx-maimail
+    host_ip=$(get_container_ip nginx-maimail)
     err_c_cur=${err_count}
-    /usr/lib/nagios/plugins/check_http -4 -H ${host_ip} -u / -p 8081 2>> /tmp/nginx-mailcow 1>&2; err_count=$(( ${err_count} + $? ))
+    /usr/lib/nagios/plugins/check_http -4 -H ${host_ip} -u / -p 8081 2>> /tmp/nginx-maimail 1>&2; err_count=$(( ${err_count} + $? ))
     [ ${err_c_cur} -eq ${err_count} ] && [ ! $((${err_count} - 1)) -lt 0 ] && err_count=$((${err_count} - 1)) diff_c=1
     [ ${err_c_cur} -ne ${err_count} ] && diff_c=$(( ${err_c_cur} - ${err_count} ))
     progress "Nginx" ${THRESHOLD} $(( ${THRESHOLD} - ${err_count} )) ${diff_c}
@@ -299,16 +299,16 @@ unbound_checks() {
   # Reduce error count by 2 after restarting an unhealthy container
   trap "[ ${err_count} -gt 1 ] && err_count=$(( ${err_count} - 2 ))" USR1
   while [ ${err_count} -lt ${THRESHOLD} ]; do
-    touch /tmp/unbound-mailcow; echo "$(tail -50 /tmp/unbound-mailcow)" > /tmp/unbound-mailcow
-    host_ip=$(get_container_ip unbound-mailcow)
+    touch /tmp/unbound-maimail; echo "$(tail -50 /tmp/unbound-maimail)" > /tmp/unbound-maimail
+    host_ip=$(get_container_ip unbound-maimail)
     err_c_cur=${err_count}
-    /usr/lib/mailcow/check_dns.sh -s ${host_ip} -H stackoverflow.com 2>> /tmp/unbound-mailcow 1>&2; err_count=$(( ${err_count} + $? ))
+    /usr/lib/maimail/check_dns.sh -s ${host_ip} -H stackoverflow.com 2>> /tmp/unbound-maimail 1>&2; err_count=$(( ${err_count} + $? ))
     DNSSEC=$(dig com +dnssec | egrep 'flags:.+ad')
     if [[ -z ${DNSSEC} ]]; then
-      echo "DNSSEC failure" 2>> /tmp/unbound-mailcow 1>&2
+      echo "DNSSEC failure" 2>> /tmp/unbound-maimail 1>&2
       err_count=$(( ${err_count} + 1))
     else
-      echo "DNSSEC check succeeded" 2>> /tmp/unbound-mailcow 1>&2
+      echo "DNSSEC check succeeded" 2>> /tmp/unbound-maimail 1>&2
     fi
     [ ${err_c_cur} -eq ${err_count} ] && [ ! $((${err_count} - 1)) -lt 0 ] && err_count=$((${err_count} - 1)) diff_c=1
     [ ${err_c_cur} -ne ${err_count} ] && diff_c=$(( ${err_c_cur} - ${err_count} ))
@@ -332,10 +332,10 @@ redis_checks() {
   # Reduce error count by 2 after restarting an unhealthy container
   trap "[ ${err_count} -gt 1 ] && err_count=$(( ${err_count} - 2 ))" USR1
   while [ ${err_count} -lt ${THRESHOLD} ]; do
-    touch /tmp/redis-mailcow; echo "$(tail -50 /tmp/redis-mailcow)" > /tmp/redis-mailcow
-    host_ip=$(get_container_ip redis-mailcow)
+    touch /tmp/redis-maimail; echo "$(tail -50 /tmp/redis-maimail)" > /tmp/redis-maimail
+    host_ip=$(get_container_ip redis-maimail)
     err_c_cur=${err_count}
-    /usr/lib/nagios/plugins/check_tcp -4 -H redis-mailcow -p 6379 -E -s "AUTH ${REDISPASS}\nPING\n" -q "QUIT" -e "PONG" 2>> /tmp/redis-mailcow 1>&2; err_count=$(( ${err_count} + $? ))
+    /usr/lib/nagios/plugins/check_tcp -4 -H redis-maimail -p 6379 -E -s "AUTH ${REDISPASS}\nPING\n" -q "QUIT" -e "PONG" 2>> /tmp/redis-maimail 1>&2; err_count=$(( ${err_count} + $? ))
     [ ${err_c_cur} -eq ${err_count} ] && [ ! $((${err_count} - 1)) -lt 0 ] && err_count=$((${err_count} - 1)) diff_c=1
     [ ${err_c_cur} -ne ${err_count} ] && diff_c=$(( ${err_c_cur} - ${err_count} ))
     progress "Redis" ${THRESHOLD} $(( ${THRESHOLD} - ${err_count} )) ${diff_c}
@@ -357,10 +357,10 @@ mysql_checks() {
   # Reduce error count by 2 after restarting an unhealthy container
   trap "[ ${err_count} -gt 1 ] && err_count=$(( ${err_count} - 2 ))" USR1
   while [ ${err_count} -lt ${THRESHOLD} ]; do
-    touch /tmp/mysql-mailcow; echo "$(tail -50 /tmp/mysql-mailcow)" > /tmp/mysql-mailcow
+    touch /tmp/mysql-maimail; echo "$(tail -50 /tmp/mysql-maimail)" > /tmp/mysql-maimail
     err_c_cur=${err_count}
-    /usr/lib/nagios/plugins/check_mysql -s /var/run/mysqld/mysqld.sock -u ${DBUSER} -p ${DBPASS} -d ${DBNAME} 2>> /tmp/mysql-mailcow 1>&2; err_count=$(( ${err_count} + $? ))
-    /usr/lib/nagios/plugins/check_mysql_query -s /var/run/mysqld/mysqld.sock -u ${DBUSER} -p ${DBPASS} -d ${DBNAME} -q "SELECT COUNT(*) FROM information_schema.tables" 2>> /tmp/mysql-mailcow 1>&2; err_count=$(( ${err_count} + $? ))
+    /usr/lib/nagios/plugins/check_mysql -s /var/run/mysqld/mysqld.sock -u ${DBUSER} -p ${DBPASS} -d ${DBNAME} 2>> /tmp/mysql-maimail 1>&2; err_count=$(( ${err_count} + $? ))
+    /usr/lib/nagios/plugins/check_mysql_query -s /var/run/mysqld/mysqld.sock -u ${DBUSER} -p ${DBPASS} -d ${DBNAME} -q "SELECT COUNT(*) FROM information_schema.tables" 2>> /tmp/mysql-maimail 1>&2; err_count=$(( ${err_count} + $? ))
     [ ${err_c_cur} -eq ${err_count} ] && [ ! $((${err_count} - 1)) -lt 0 ] && err_count=$((${err_count} - 1)) diff_c=1
     [ ${err_c_cur} -ne ${err_count} ] && diff_c=$(( ${err_c_cur} - ${err_count} ))
     progress "MySQL/MariaDB" ${THRESHOLD} $(( ${THRESHOLD} - ${err_count} )) ${diff_c}
@@ -406,10 +406,10 @@ sogo_checks() {
   # Reduce error count by 2 after restarting an unhealthy container
   trap "[ ${err_count} -gt 1 ] && err_count=$(( ${err_count} - 2 ))" USR1
   while [ ${err_count} -lt ${THRESHOLD} ]; do
-    touch /tmp/sogo-mailcow; echo "$(tail -50 /tmp/sogo-mailcow)" > /tmp/sogo-mailcow
-    host_ip=$(get_container_ip sogo-mailcow)
+    touch /tmp/sogo-maimail; echo "$(tail -50 /tmp/sogo-maimail)" > /tmp/sogo-maimail
+    host_ip=$(get_container_ip sogo-maimail)
     err_c_cur=${err_count}
-    /usr/lib/nagios/plugins/check_http -4 -H ${host_ip} -u /SOGo.index/ -p 20000 2>> /tmp/sogo-mailcow 1>&2; err_count=$(( ${err_count} + $? ))
+    /usr/lib/nagios/plugins/check_http -4 -H ${host_ip} -u /SOGo.index/ -p 20000 2>> /tmp/sogo-maimail 1>&2; err_count=$(( ${err_count} + $? ))
     [ ${err_c_cur} -eq ${err_count} ] && [ ! $((${err_count} - 1)) -lt 0 ] && err_count=$((${err_count} - 1)) diff_c=1
     [ ${err_c_cur} -ne ${err_count} ] && diff_c=$(( ${err_c_cur} - ${err_count} ))
     progress "SOGo" ${THRESHOLD} $(( ${THRESHOLD} - ${err_count} )) ${diff_c}
@@ -431,11 +431,11 @@ postfix_checks() {
   # Reduce error count by 2 after restarting an unhealthy container
   trap "[ ${err_count} -gt 1 ] && err_count=$(( ${err_count} - 2 ))" USR1
   while [ ${err_count} -lt ${THRESHOLD} ]; do
-    touch /tmp/postfix-mailcow; echo "$(tail -50 /tmp/postfix-mailcow)" > /tmp/postfix-mailcow
-    host_ip=$(get_container_ip postfix-mailcow)
+    touch /tmp/postfix-maimail; echo "$(tail -50 /tmp/postfix-maimail)" > /tmp/postfix-maimail
+    host_ip=$(get_container_ip postfix-maimail)
     err_c_cur=${err_count}
-    /usr/lib/nagios/plugins/check_smtp -4 -H ${host_ip} -p 589 -f "watchdog@invalid" -C "RCPT TO:watchdog@localhost" -C DATA -C . -R 250 2>> /tmp/postfix-mailcow 1>&2; err_count=$(( ${err_count} + $? ))
-    /usr/lib/nagios/plugins/check_smtp -4 -H ${host_ip} -p 589 -S 2>> /tmp/postfix-mailcow 1>&2; err_count=$(( ${err_count} + $? ))
+    /usr/lib/nagios/plugins/check_smtp -4 -H ${host_ip} -p 589 -f "watchdog@invalid" -C "RCPT TO:watchdog@localhost" -C DATA -C . -R 250 2>> /tmp/postfix-maimail 1>&2; err_count=$(( ${err_count} + $? ))
+    /usr/lib/nagios/plugins/check_smtp -4 -H ${host_ip} -p 589 -S 2>> /tmp/postfix-maimail 1>&2; err_count=$(( ${err_count} + $? ))
     [ ${err_c_cur} -eq ${err_count} ] && [ ! $((${err_count} - 1)) -lt 0 ] && err_count=$((${err_count} - 1)) diff_c=1
     [ ${err_c_cur} -ne ${err_count} ] && diff_c=$(( ${err_c_cur} - ${err_count} ))
     progress "Postfix" ${THRESHOLD} $(( ${THRESHOLD} - ${err_count} )) ${diff_c}
@@ -457,10 +457,10 @@ postfix-tlspol_checks() {
   # Reduce error count by 2 after restarting an unhealthy container
   trap "[ ${err_count} -gt 1 ] && err_count=$(( ${err_count} - 2 ))" USR1
   while [ ${err_count} -lt ${THRESHOLD} ]; do
-    touch /tmp/postfix-tlspol-mailcow; echo "$(tail -50 /tmp/postfix-tlspol-mailcow)" > /tmp/postfix-tlspol-mailcow
-    host_ip=$(get_container_ip postfix-tlspol-mailcow)
+    touch /tmp/postfix-tlspol-maimail; echo "$(tail -50 /tmp/postfix-tlspol-maimail)" > /tmp/postfix-tlspol-maimail
+    host_ip=$(get_container_ip postfix-tlspol-maimail)
     err_c_cur=${err_count}
-    /usr/lib/nagios/plugins/check_tcp -4 -H ${host_ip} -p 8642 2>> /tmp/postfix-tlspol-mailcow 1>&2; err_count=$(( ${err_count} + $? ))
+    /usr/lib/nagios/plugins/check_tcp -4 -H ${host_ip} -p 8642 2>> /tmp/postfix-tlspol-maimail 1>&2; err_count=$(( ${err_count} + $? ))
     [ ${err_c_cur} -eq ${err_count} ] && [ ! $((${err_count} - 1)) -lt 0 ] && err_count=$((${err_count} - 1)) diff_c=1
     [ ${err_c_cur} -ne ${err_count} ] && diff_c=$(( ${err_c_cur} - ${err_count} ))
     progress "Postfix TLS Policy companion" ${THRESHOLD} $(( ${THRESHOLD} - ${err_count} )) ${diff_c}
@@ -482,10 +482,10 @@ clamd_checks() {
   # Reduce error count by 2 after restarting an unhealthy container
   trap "[ ${err_count} -gt 1 ] && err_count=$(( ${err_count} - 2 ))" USR1
   while [ ${err_count} -lt ${THRESHOLD} ]; do
-    touch /tmp/clamd-mailcow; echo "$(tail -50 /tmp/clamd-mailcow)" > /tmp/clamd-mailcow
-    host_ip=$(get_container_ip clamd-mailcow)
+    touch /tmp/clamd-maimail; echo "$(tail -50 /tmp/clamd-maimail)" > /tmp/clamd-maimail
+    host_ip=$(get_container_ip clamd-maimail)
     err_c_cur=${err_count}
-    /usr/lib/nagios/plugins/check_clamd -4 -H ${host_ip} 2>> /tmp/clamd-mailcow 1>&2; err_count=$(( ${err_count} + $? ))
+    /usr/lib/nagios/plugins/check_clamd -4 -H ${host_ip} 2>> /tmp/clamd-maimail 1>&2; err_count=$(( ${err_count} + $? ))
     [ ${err_c_cur} -eq ${err_count} ] && [ ! $((${err_count} - 1)) -lt 0 ] && err_count=$((${err_count} - 1)) diff_c=1
     [ ${err_c_cur} -ne ${err_count} ] && diff_c=$(( ${err_c_cur} - ${err_count} ))
     progress "Clamd" ${THRESHOLD} $(( ${THRESHOLD} - ${err_count} )) ${diff_c}
@@ -507,14 +507,14 @@ dovecot_checks() {
   # Reduce error count by 2 after restarting an unhealthy container
   trap "[ ${err_count} -gt 1 ] && err_count=$(( ${err_count} - 2 ))" USR1
   while [ ${err_count} -lt ${THRESHOLD} ]; do
-    touch /tmp/dovecot-mailcow; echo "$(tail -50 /tmp/dovecot-mailcow)" > /tmp/dovecot-mailcow
-    host_ip=$(get_container_ip dovecot-mailcow)
+    touch /tmp/dovecot-maimail; echo "$(tail -50 /tmp/dovecot-maimail)" > /tmp/dovecot-maimail
+    host_ip=$(get_container_ip dovecot-maimail)
     err_c_cur=${err_count}
-    /usr/lib/nagios/plugins/check_smtp -4 -H ${host_ip} -p 24 -f "watchdog@invalid" -C "RCPT TO:<watchdog@invalid>" -L -R "User doesn't exist" 2>> /tmp/dovecot-mailcow 1>&2; err_count=$(( ${err_count} + $? ))
-    /usr/lib/nagios/plugins/check_imap -4 -H ${host_ip} -p 993 -S -e "OK " 2>> /tmp/dovecot-mailcow 1>&2; err_count=$(( ${err_count} + $? ))
-    /usr/lib/nagios/plugins/check_imap -4 -H ${host_ip} -p 143 -e "OK " 2>> /tmp/dovecot-mailcow 1>&2; err_count=$(( ${err_count} + $? ))
-    /usr/lib/nagios/plugins/check_tcp -4 -H ${host_ip} -p 10001 -e "VERSION" 2>> /tmp/dovecot-mailcow 1>&2; err_count=$(( ${err_count} + $? ))
-    /usr/lib/nagios/plugins/check_tcp -4 -H ${host_ip} -p 4190 -e "Dovecot ready" 2>> /tmp/dovecot-mailcow 1>&2; err_count=$(( ${err_count} + $? ))
+    /usr/lib/nagios/plugins/check_smtp -4 -H ${host_ip} -p 24 -f "watchdog@invalid" -C "RCPT TO:<watchdog@invalid>" -L -R "User doesn't exist" 2>> /tmp/dovecot-maimail 1>&2; err_count=$(( ${err_count} + $? ))
+    /usr/lib/nagios/plugins/check_imap -4 -H ${host_ip} -p 993 -S -e "OK " 2>> /tmp/dovecot-maimail 1>&2; err_count=$(( ${err_count} + $? ))
+    /usr/lib/nagios/plugins/check_imap -4 -H ${host_ip} -p 143 -e "OK " 2>> /tmp/dovecot-maimail 1>&2; err_count=$(( ${err_count} + $? ))
+    /usr/lib/nagios/plugins/check_tcp -4 -H ${host_ip} -p 10001 -e "VERSION" 2>> /tmp/dovecot-maimail 1>&2; err_count=$(( ${err_count} + $? ))
+    /usr/lib/nagios/plugins/check_tcp -4 -H ${host_ip} -p 4190 -e "Dovecot ready" 2>> /tmp/dovecot-maimail 1>&2; err_count=$(( ${err_count} + $? ))
     [ ${err_c_cur} -eq ${err_count} ] && [ ! $((${err_count} - 1)) -lt 0 ] && err_count=$((${err_count} - 1)) diff_c=1
     [ ${err_c_cur} -ne ${err_count} ] && diff_c=$(( ${err_c_cur} - ${err_count} ))
     progress "Dovecot" ${THRESHOLD} $(( ${THRESHOLD} - ${err_count} )) ${diff_c}
@@ -585,11 +585,11 @@ phpfpm_checks() {
   # Reduce error count by 2 after restarting an unhealthy container
   trap "[ ${err_count} -gt 1 ] && err_count=$(( ${err_count} - 2 ))" USR1
   while [ ${err_count} -lt ${THRESHOLD} ]; do
-    touch /tmp/php-fpm-mailcow; echo "$(tail -50 /tmp/php-fpm-mailcow)" > /tmp/php-fpm-mailcow
-    host_ip=$(get_container_ip php-fpm-mailcow)
+    touch /tmp/php-fpm-maimail; echo "$(tail -50 /tmp/php-fpm-maimail)" > /tmp/php-fpm-maimail
+    host_ip=$(get_container_ip php-fpm-maimail)
     err_c_cur=${err_count}
-    /usr/lib/nagios/plugins/check_tcp -H ${host_ip} -p 9001 2>> /tmp/php-fpm-mailcow 1>&2; err_count=$(( ${err_count} + $? ))
-    /usr/lib/nagios/plugins/check_tcp -H ${host_ip} -p 9002 2>> /tmp/php-fpm-mailcow 1>&2; err_count=$(( ${err_count} + $? ))
+    /usr/lib/nagios/plugins/check_tcp -H ${host_ip} -p 9001 2>> /tmp/php-fpm-maimail 1>&2; err_count=$(( ${err_count} + $? ))
+    /usr/lib/nagios/plugins/check_tcp -H ${host_ip} -p 9002 2>> /tmp/php-fpm-maimail 1>&2; err_count=$(( ${err_count} + $? ))
     [ ${err_c_cur} -eq ${err_count} ] && [ ! $((${err_count} - 1)) -lt 0 ] && err_count=$((${err_count} - 1)) diff_c=1
     [ ${err_c_cur} -ne ${err_count} ] && diff_c=$(( ${err_c_cur} - ${err_count} ))
     progress "PHP-FPM" ${THRESHOLD} $(( ${THRESHOLD} - ${err_count} )) ${diff_c}
@@ -618,7 +618,7 @@ ratelimit_checks() {
     if [[ ${RL_LOG_STATUS_PREV} != ${RL_LOG_STATUS} ]]; then
       err_count=$(( ${err_count} + 1 ))
       echo 'Last 10 applied ratelimits (may overlap with previous reports).' > /tmp/ratelimit
-      echo 'Full ratelimit buckets can be emptied by deleting the ratelimit hash from within mailcow UI (see /debug -> Protocols -> Ratelimit):' >> /tmp/ratelimit
+      echo 'Full ratelimit buckets can be emptied by deleting the ratelimit hash from within maimail UI (see /debug -> Protocols -> Ratelimit):' >> /tmp/ratelimit
       echo >> /tmp/ratelimit
       redis-cli --raw -h redis -a ${REDISPASS} --no-auth-warning LRANGE RL_LOG 0 10 | jq . >> /tmp/ratelimit
     fi
@@ -743,26 +743,26 @@ rspamd_checks() {
   # Reduce error count by 2 after restarting an unhealthy container
   trap "[ ${err_count} -gt 1 ] && err_count=$(( ${err_count} - 2 ))" USR1
   while [ ${err_count} -lt ${THRESHOLD} ]; do
-    touch /tmp/rspamd-mailcow; echo "$(tail -50 /tmp/rspamd-mailcow)" > /tmp/rspamd-mailcow
-    host_ip=$(get_container_ip rspamd-mailcow)
+    touch /tmp/rspamd-maimail; echo "$(tail -50 /tmp/rspamd-maimail)" > /tmp/rspamd-maimail
+    host_ip=$(get_container_ip rspamd-maimail)
     err_c_cur=${err_count}
     SCORE=$(echo 'To: null@localhost
 From: watchdog@localhost
 
 Empty
-' | usr/bin/curl --max-time 10 -s --data-binary @- --unix-socket /var/lib/rspamd/rspamd.sock http://rspamd.${COMPOSE_PROJECT_NAME}_mailcow-network/scan | jq -rc .default.required_score | sed 's/\..*//' )
+' | usr/bin/curl --max-time 10 -s --data-binary @- --unix-socket /var/lib/rspamd/rspamd.sock http://rspamd.${COMPOSE_PROJECT_NAME}_maimail-network/scan | jq -rc .default.required_score | sed 's/\..*//' )
     if [[ ${SCORE} -ne 9999 ]]; then
-      echo "Rspamd settings check failed, score returned: ${SCORE}" 2>> /tmp/rspamd-mailcow 1>&2
+      echo "Rspamd settings check failed, score returned: ${SCORE}" 2>> /tmp/rspamd-maimail 1>&2
       err_count=$(( ${err_count} + 1))
     else
-      echo "Rspamd settings check succeeded, score returned: ${SCORE}" 2>> /tmp/rspamd-mailcow 1>&2
+      echo "Rspamd settings check succeeded, score returned: ${SCORE}" 2>> /tmp/rspamd-maimail 1>&2
     fi
     # A dirty hack until a PING PONG event is implemented to worker proxy
     # We expect an empty response, not a timeout
     if [ "$(curl -s --max-time 10 ${host_ip}:9900 2> /dev/null ; echo $?)" == "28" ]; then
-      echo "Milter check failed" 2>> /tmp/rspamd-mailcow 1>&2; err_count=$(( ${err_count} + 1 ));
+      echo "Milter check failed" 2>> /tmp/rspamd-maimail 1>&2; err_count=$(( ${err_count} + 1 ));
     else
-      echo "Milter check succeeded" 2>> /tmp/rspamd-mailcow 1>&2
+      echo "Milter check succeeded" 2>> /tmp/rspamd-maimail 1>&2
     fi
     [ ${err_c_cur} -eq ${err_count} ] && [ ! $((${err_count} - 1)) -lt 0 ] && err_count=$((${err_count} - 1)) diff_c=1
     [ ${err_c_cur} -ne ${err_count} ] && diff_c=$(( ${err_c_cur} - ${err_count} ))
@@ -785,10 +785,10 @@ olefy_checks() {
   # Reduce error count by 2 after restarting an unhealthy container
   trap "[ ${err_count} -gt 1 ] && err_count=$(( ${err_count} - 2 ))" USR1
   while [ ${err_count} -lt ${THRESHOLD} ]; do
-    touch /tmp/olefy-mailcow; echo "$(tail -50 /tmp/olefy-mailcow)" > /tmp/olefy-mailcow
-    host_ip=$(get_container_ip olefy-mailcow)
+    touch /tmp/olefy-maimail; echo "$(tail -50 /tmp/olefy-maimail)" > /tmp/olefy-maimail
+    host_ip=$(get_container_ip olefy-maimail)
     err_c_cur=${err_count}
-    /usr/lib/nagios/plugins/check_tcp -4 -H ${host_ip} -p 10055 -s "PING\n" 2>> /tmp/olefy-mailcow 1>&2; err_count=$(( ${err_count} + $? ))
+    /usr/lib/nagios/plugins/check_tcp -4 -H ${host_ip} -p 10055 -s "PING\n" 2>> /tmp/olefy-maimail 1>&2; err_count=$(( ${err_count} + $? ))
     [ ${err_c_cur} -eq ${err_count} ] && [ ! $((${err_count} - 1)) -lt 0 ] && err_count=$((${err_count} - 1)) diff_c=1
     [ ${err_c_cur} -ne ${err_count} ] && diff_c=$(( ${err_c_cur} - ${err_count} ))
     progress "Olefy" ${THRESHOLD} $(( ${THRESHOLD} - ${err_count} )) ${diff_c}
@@ -805,7 +805,7 @@ olefy_checks() {
 
 # Notify about start
 if [[ ${WATCHDOG_NOTIFY_START} =~ ^([yY][eE][sS]|[yY])+$ ]]; then
-  notify_error "watchdog-mailcow" "Watchdog started monitoring mailcow."
+  notify_error "watchdog-maimail" "Watchdog started monitoring maimail."
 fi
 
 # Create watchdog agents
@@ -814,7 +814,7 @@ fi
 while true; do
   if ! nginx_checks; then
     log_msg "Nginx hit error limit"
-    echo nginx-mailcow > /tmp/com_pipe
+    echo nginx-maimail > /tmp/com_pipe
   fi
 done
 ) &
@@ -854,7 +854,7 @@ fi
 while true; do
   if ! mysql_checks; then
     log_msg "MySQL hit error limit"
-    echo mysql-mailcow > /tmp/com_pipe
+    echo mysql-maimail > /tmp/com_pipe
   fi
 done
 ) &
@@ -866,7 +866,7 @@ BACKGROUND_TASKS+=(${PID})
 while true; do
   if ! redis_checks; then
     log_msg "Local Redis hit error limit"
-    echo redis-mailcow > /tmp/com_pipe
+    echo redis-maimail > /tmp/com_pipe
   fi
 done
 ) &
@@ -878,7 +878,7 @@ BACKGROUND_TASKS+=(${PID})
 while true; do
   if ! phpfpm_checks; then
     log_msg "PHP-FPM hit error limit"
-    echo php-fpm-mailcow > /tmp/com_pipe
+    echo php-fpm-maimail > /tmp/com_pipe
   fi
 done
 ) &
@@ -891,7 +891,7 @@ if [[ "${SKIP_SOGO}" =~ ^([nN][oO]|[nN])+$ ]]; then
 while true; do
   if ! sogo_checks; then
     log_msg "SOGo hit error limit"
-    echo sogo-mailcow > /tmp/com_pipe
+    echo sogo-maimail > /tmp/com_pipe
   fi
 done
 ) &
@@ -905,7 +905,7 @@ if [ ${CHECK_UNBOUND} -eq 1 ]; then
 while true; do
   if ! unbound_checks; then
     log_msg "Unbound hit error limit"
-    echo unbound-mailcow > /tmp/com_pipe
+    echo unbound-maimail > /tmp/com_pipe
   fi
 done
 ) &
@@ -919,7 +919,7 @@ if [[ "${SKIP_CLAMD}" =~ ^([nN][oO]|[nN])+$ ]]; then
 while true; do
   if ! clamd_checks; then
     log_msg "Clamd hit error limit"
-    echo clamd-mailcow > /tmp/com_pipe
+    echo clamd-maimail > /tmp/com_pipe
   fi
 done
 ) &
@@ -932,7 +932,7 @@ fi
 while true; do
   if ! postfix_checks; then
     log_msg "Postfix hit error limit"
-    echo postfix-mailcow > /tmp/com_pipe
+    echo postfix-maimail > /tmp/com_pipe
   fi
 done
 ) &
@@ -956,7 +956,7 @@ BACKGROUND_TASKS+=(${PID})
 while true; do
   if ! postfix-tlspol_checks; then
     log_msg "Postfix TLS Policy hit error limit"
-    echo postfix-tlspol-mailcow > /tmp/com_pipe
+    echo postfix-tlspol-maimail > /tmp/com_pipe
   fi
 done
 ) &
@@ -968,7 +968,7 @@ BACKGROUND_TASKS+=(${PID})
 while true; do
   if ! dovecot_checks; then
     log_msg "Dovecot hit error limit"
-    echo dovecot-mailcow > /tmp/com_pipe
+    echo dovecot-maimail > /tmp/com_pipe
   fi
 done
 ) &
@@ -992,7 +992,7 @@ BACKGROUND_TASKS+=(${PID})
 while true; do
   if ! rspamd_checks; then
     log_msg "Rspamd hit error limit"
-    echo rspamd-mailcow > /tmp/com_pipe
+    echo rspamd-maimail > /tmp/com_pipe
   fi
 done
 ) &
@@ -1041,7 +1041,7 @@ if [[ "${SKIP_OLEFY}" =~ ^([nN][oO]|[nN])+$ ]]; then
 while true; do
   if ! olefy_checks; then
     log_msg "Olefy hit error limit"
-    echo olefy-mailcow > /tmp/com_pipe
+    echo olefy-maimail > /tmp/com_pipe
   fi
 done
 ) &
@@ -1054,7 +1054,7 @@ fi
 while true; do
   if ! acme_checks; then
     log_msg "ACME client hit error limit"
-    echo acme-mailcow > /tmp/com_pipe
+    echo acme-maimail > /tmp/com_pipe
   fi
 done
 ) &
@@ -1081,7 +1081,7 @@ while true; do
   while nc -z dockerapi 443; do
     sleep 3
   done
-  log_msg "Cannot find dockerapi-mailcow, waiting to recover..."
+  log_msg "Cannot find dockerapi-maimail, waiting to recover..."
   kill -STOP ${BACKGROUND_TASKS[*]}
   until nc -z dockerapi 443; do
     sleep 3
@@ -1106,9 +1106,9 @@ while true; do
     log_msg "Mail queue status is critical"
     notify_error "${com_pipe_answer}"
   elif [[ ${com_pipe_answer} == "external_checks" ]]; then
-    log_msg "Your mailcow is an open relay!"
+    log_msg "Your maimail is an open relay!"
     # Define $2 to override message text, else print service was restarted at ...
-    notify_error "${com_pipe_answer}" "Please stop mailcow now and check your network configuration!"
+    notify_error "${com_pipe_answer}" "Please stop maimail now and check your network configuration!"
   elif [[ ${com_pipe_answer} == "mysql_repl_checks" ]]; then
     log_msg "MySQL replication is not working properly"
     # Define $2 to override message text, else print service was restarted at ...
@@ -1124,10 +1124,10 @@ while true; do
     # Define $2 to override message text, else print service was restarted at ...
     # Only mail once a day
     notify_error "${com_pipe_answer}" "Please renew your certificate" 86400
-  elif [[ ${com_pipe_answer} == "acme-mailcow" ]]; then
-    log_msg "acme-mailcow did not complete successfully"
+  elif [[ ${com_pipe_answer} == "acme-maimail" ]]; then
+    log_msg "acme-maimail did not complete successfully"
     # Define $2 to override message text, else print service was restarted at ...
-    notify_error "${com_pipe_answer}" "Please check acme-mailcow for further information."
+    notify_error "${com_pipe_answer}" "Please check acme-maimail for further information."
   elif [[ ${com_pipe_answer} == "fail2ban" ]]; then
     F2B_RES=($(timeout 4s ${REDIS_CMDLINE} --raw GET F2B_RES 2> /dev/null))
     if [[ ! -z "${F2B_RES}" ]]; then
@@ -1140,23 +1140,23 @@ while true; do
         [[ ${WATCHDOG_NOTIFY_BAN} =~ ^([yY][eE][sS]|[yY])+$ ]] && notify_error "${com_pipe_answer}" "IP ban: ${host}"
       done
     fi
-  elif [[ ${com_pipe_answer} =~ .+-mailcow ]]; then
+  elif [[ ${com_pipe_answer} =~ .+-maimail ]]; then
     kill -STOP ${BACKGROUND_TASKS[*]}
     sleep 10
-    CONTAINER_ID=$(curl --silent --insecure https://dockerapi.${COMPOSE_PROJECT_NAME}_mailcow-network/containers/json | jq -r ".[] | {name: .Config.Labels[\"com.docker.compose.service\"], project: .Config.Labels[\"com.docker.compose.project\"], id: .Id}" | jq -rc "select( .name | tostring | contains(\"${com_pipe_answer}\")) | select( .project | tostring | contains(\"${COMPOSE_PROJECT_NAME,,}\")) | .id")
+    CONTAINER_ID=$(curl --silent --insecure https://dockerapi.${COMPOSE_PROJECT_NAME}_maimail-network/containers/json | jq -r ".[] | {name: .Config.Labels[\"com.docker.compose.service\"], project: .Config.Labels[\"com.docker.compose.project\"], id: .Id}" | jq -rc "select( .name | tostring | contains(\"${com_pipe_answer}\")) | select( .project | tostring | contains(\"${COMPOSE_PROJECT_NAME,,}\")) | .id")
     if [[ ! -z ${CONTAINER_ID} ]]; then
-      if [[ "${com_pipe_answer}" == "php-fpm-mailcow" ]]; then
-        HAS_INITDB=$(curl --silent --insecure -XPOST https://dockerapi.${COMPOSE_PROJECT_NAME}_mailcow-network/containers/${CONTAINER_ID}/top | jq '.msg.Processes[] | contains(["php -c /usr/local/etc/php -f /web/inc/init_db.inc.php"])' | grep true)
+      if [[ "${com_pipe_answer}" == "php-fpm-maimail" ]]; then
+        HAS_INITDB=$(curl --silent --insecure -XPOST https://dockerapi.${COMPOSE_PROJECT_NAME}_maimail-network/containers/${CONTAINER_ID}/top | jq '.msg.Processes[] | contains(["php -c /usr/local/etc/php -f /web/inc/init_db.inc.php"])' | grep true)
       fi
-      S_RUNNING=$(($(date +%s) - $(curl --silent --insecure https://dockerapi.${COMPOSE_PROJECT_NAME}_mailcow-network/containers/${CONTAINER_ID}/json | jq .State.StartedAt | xargs -n1 date +%s -d)))
+      S_RUNNING=$(($(date +%s) - $(curl --silent --insecure https://dockerapi.${COMPOSE_PROJECT_NAME}_maimail-network/containers/${CONTAINER_ID}/json | jq .State.StartedAt | xargs -n1 date +%s -d)))
       if [ ${S_RUNNING} -lt 360 ]; then
         log_msg "Container is running for less than 360 seconds, skipping action..."
       elif [[ ! -z ${HAS_INITDB} ]]; then
-        log_msg "Database is being initialized by php-fpm-mailcow, not restarting but delaying checks for a minute..."
+        log_msg "Database is being initialized by php-fpm-maimail, not restarting but delaying checks for a minute..."
         sleep 60
       else
         log_msg "Sending restart command to ${CONTAINER_ID}..."
-        curl --silent --insecure -XPOST https://dockerapi.${COMPOSE_PROJECT_NAME}_mailcow-network/containers/${CONTAINER_ID}/restart
+        curl --silent --insecure -XPOST https://dockerapi.${COMPOSE_PROJECT_NAME}_maimail-network/containers/${CONTAINER_ID}/restart
         notify_error "${com_pipe_answer}"
         log_msg "Wait for restarted container to settle and continue watching..."
         sleep 35

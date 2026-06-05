@@ -49,7 +49,7 @@ if (array_key_exists('pending_tfa_methods', $_SESSION)) {
 
 // globals
 $globalVariables = [
-  'mailcow_info' => array(
+  'maimail_info' => array(
     'version_tag' => $GLOBALS['MAILCOW_GIT_VERSION'],
     'last_version_tag' => $GLOBALS['MAILCOW_LAST_GIT_VERSION'],
     'git_owner' => $GLOBALS['MAILCOW_GIT_OWNER'],
@@ -57,13 +57,13 @@ $globalVariables = [
     'git_project_url' => $GLOBALS['MAILCOW_GIT_URL'],
     'git_commit' => $GLOBALS['MAILCOW_GIT_COMMIT'],
     'git_commit_date' => $GLOBALS['MAILCOW_GIT_COMMIT_DATE'],
-    'mailcow_branch' => $GLOBALS['MAILCOW_BRANCH'],
+    'maimail_branch' => $GLOBALS['MAILCOW_BRANCH'],
     'updated_at' => $GLOBALS['MAILCOW_UPDATEDAT']
   ),
   'js_path' => '/cache/'.basename($JSPath),
   'pending_tfa_methods' => @$_SESSION['pending_tfa_methods'],
   'pending_tfa_authmechs' => $pending_tfa_authmechs,
-  'pending_mailcow_cc_username' => @$_SESSION['pending_mailcow_cc_username'],
+  'pending_maimail_cc_username' => @$_SESSION['pending_maimail_cc_username'],
   'lang_footer' => json_encode($lang['footer']),
   'lang_acl' => json_encode($lang['acl']),
   'lang_tfa' => json_encode($lang['tfa']),
@@ -87,7 +87,7 @@ if (is_array($template_data)) {
   echo $twig->render($template, $template_data);
 }
 
-if (isset($_SESSION['mailcow_cc_api'])) {
+if (isset($_SESSION['maimail_cc_api'])) {
   session_regenerate_id(true);
   session_unset();
   session_destroy();

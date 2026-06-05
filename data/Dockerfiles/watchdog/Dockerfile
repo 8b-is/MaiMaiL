@@ -32,10 +32,10 @@ RUN apk add --update \
   whois \
   && curl https://raw.githubusercontent.com/mludvig/smtp-cli/v3.10/smtp-cli -o /smtp-cli \
   && chmod +x smtp-cli \
-  && mkdir /usr/lib/mailcow
+  && mkdir /usr/lib/maimail
 
 COPY watchdog.sh /watchdog.sh
 COPY check_mysql_slavestatus.sh /usr/lib/nagios/plugins/check_mysql_slavestatus.sh
-COPY check_dns.sh /usr/lib/mailcow/check_dns.sh
+COPY check_dns.sh /usr/lib/maimail/check_dns.sh
 
 CMD ["/watchdog.sh"]

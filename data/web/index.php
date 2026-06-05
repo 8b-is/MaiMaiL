@@ -2,14 +2,14 @@
 require_once $_SERVER['DOCUMENT_ROOT'] . '/inc/prerequisites.inc.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/inc/triggers.user.inc.php';
 
-if (isset($_SESSION['mailcow_cc_role']) && isset($_SESSION['oauth2_request'])) {
+if (isset($_SESSION['maimail_cc_role']) && isset($_SESSION['oauth2_request'])) {
   $oauth2_request = $_SESSION['oauth2_request'];
   unset($_SESSION['oauth2_request']);
   header('Location: ' . $oauth2_request);
   exit();
 }
-elseif (isset($_SESSION['mailcow_cc_role']) && $_SESSION['mailcow_cc_role'] == 'user') {
-  $user_details = mailbox("get", "mailbox_details", $_SESSION['mailcow_cc_username']);
+elseif (isset($_SESSION['maimail_cc_role']) && $_SESSION['maimail_cc_role'] == 'user') {
+  $user_details = mailbox("get", "mailbox_details", $_SESSION['maimail_cc_username']);
   $is_dual = (!empty($_SESSION["dual-login"]["username"])) ? true : false;
   if (intval($user_details['attributes']['sogo_access']) == 1 && !$is_dual && getenv('SKIP_SOGO') != "y") {
     header("Location: /SOGo/so/");
@@ -18,11 +18,11 @@ elseif (isset($_SESSION['mailcow_cc_role']) && $_SESSION['mailcow_cc_role'] == '
   }
   exit();
 }
-elseif (isset($_SESSION['mailcow_cc_role']) && $_SESSION['mailcow_cc_role'] == 'admin') {
+elseif (isset($_SESSION['maimail_cc_role']) && $_SESSION['maimail_cc_role'] == 'admin') {
   header('Location: /admin/dashboard');
   exit();
 }
-elseif (isset($_SESSION['mailcow_cc_role']) && $_SESSION['mailcow_cc_role'] == 'domainadmin') {
+elseif (isset($_SESSION['maimail_cc_role']) && $_SESSION['maimail_cc_role'] == 'domainadmin') {
   header('Location: /domainadmin/mailbox');
   exit();
 }

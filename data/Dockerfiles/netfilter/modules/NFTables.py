@@ -16,10 +16,10 @@ class NFTables:
     self.search_current_chains()
 
   def initChainIPv4(self):
-    self.insert_mailcow_chains("ip")
+    self.insert_maimail_chains("ip")
 
   def initChainIPv6(self):
-    self.insert_mailcow_chains("ip6")
+    self.insert_maimail_chains("ip6")
 
   def checkIPv4ChainOrder(self):
     return self.checkChainOrder("ip")
@@ -32,7 +32,7 @@ class NFTables:
     exit_code = None
 
     for chain in ['input', 'forward']:
-      chain_position = self.check_mailcow_chains(filter_table, chain)
+      chain_position = self.check_maimail_chains(filter_table, chain)
       if chain_position is None: continue
 
       if chain_position is False:
@@ -62,8 +62,8 @@ class NFTables:
     if chain_handle is not None:
       is_empty_dict = False
       # flush chain
-      mailcow_chain = {'family': _family, 'table': 'filter', 'name': self.chain_name}
-      flush_chain = {'flush': {'chain': mailcow_chain}}
+      maimail_chain = {'family': _family, 'table': 'filter', 'name': self.chain_name}
+      flush_chain = {'flush': {'chain': maimail_chain}}
       json_command["nftables"].append(flush_chain)
 
     # remove rule in forward chain
@@ -78,11 +78,11 @@ class NFTables:
       if rules_handle is not None:
         for r_handle in rules_handle:
           is_empty_dict = False
-          mailcow_rule = {'family':_family,
+          maimail_rule = {'family':_family,
                           'table': 'filter',
                           'chain': chain_base,
                           'handle': r_handle }
-          delete_rules = {'delete': {'rule': mailcow_rule} }
+          delete_rules = {'delete': {'rule': maimail_rule} }
           json_command["nftables"].append(delete_rules)
 
     # remove chain
@@ -196,7 +196,7 @@ class NFTables:
     final_chain["nftables"].append(_add)
     return final_chain
 
-  def get_mailcow_jump_rule_dict(self, _family: str, _chain: str):
+  def get_maimail_jump_rule_dict(self, _family: str, _chain: str):
     _jump_rule = self.get_base_dict()
     _expr_opt=[]
     _expr_counter = {'family': _family, 'table': 'filter', 'packets': 0, 'bytes': 0}
@@ -211,7 +211,7 @@ class NFTables:
                     'table': 'filter',
                     'chain': _chain,
                     'expr': _expr_opt,
-                    'comment': "mailcow" }
+                    'comment': "maimail" }
 
     _add_rule = {'insert': {'rule': _rule_params} }
 
@@ -219,7 +219,7 @@ class NFTables:
 
     return _jump_rule
 
-  def insert_mailcow_chains(self, _family: str):
+  def insert_maimail_chains(self, _family: str):
     nft_input_chain = self.nft_chain_names[_family]['filter']['input']
     nft_forward_chain = self.nft_chain_names[_family]['filter']['forward']
     # Command: 'nft list table <family> filter'
@@ -243,18 +243,18 @@ class NFTables:
 
         rule = _object["rule"]
         if nft_input_chain and rule["chain"] == nft_input_chain:
-          if rule.get("comment") and rule["comment"] == "mailcow":
+          if rule.get("comment") and rule["comment"] == "maimail":
             input_jump_found = True
         if nft_forward_chain and rule["chain"] == nft_forward_chain:
-          if rule.get("comment") and rule["comment"] == "mailcow":
+          if rule.get("comment") and rule["comment"] == "maimail":
             forward_jump_found = True
 
       if not input_jump_found:
-        command = self.get_mailcow_jump_rule_dict(_family, nft_input_chain)
+        command = self.get_maimail_jump_rule_dict(_family, nft_input_chain)
         self.nft_exec_dict(command)
 
       if not forward_jump_found:
-        command = self.get_mailcow_jump_rule_dict(_family, nft_forward_chain)
+        command = self.get_maimail_jump_rule_dict(_family, nft_forward_chain)
         self.nft_exec_dict(command)
 
   def delete_nat_rule(self, _family:str, _chain: str, _handle:str):
@@ -302,7 +302,7 @@ class NFTables:
         continue
 
       rule = _object["rule"]
-      if not rule.get("comment") or not rule["comment"] == "mailcow":
+      if not rule.get("comment") or not rule["comment"] == "maimail":
         rule_position +=1
         continue
 
@@ -334,11 +334,11 @@ class NFTables:
       try:
         if rule_position == 0:
           if not match:
-            # Position 0 , it is a mailcow rule , but it does not have the same parameters
+            # Position 0 , it is a maimail rule , but it does not have the same parameters
             if self.delete_nat_rule(_family, chain_name, rule_handle):
               self.logger.logInfo(f'Remove rule for source network {saddr_net} to SNAT target {target_net} from {_family} nat {chain_name} chain, rule does not match configured parameters')
         else:
-          # Position > 0 and is mailcow rule
+          # Position > 0 and is maimail rule
           if self.delete_nat_rule(_family, chain_name, rule_handle):
             self.logger.logInfo(f'Remove rule for source network {saddr_net} to SNAT target {target_net} from {_family} nat {chain_name} chain, rule is at position {rule_position}')
       except:
@@ -367,7 +367,7 @@ class NFTables:
         rule_fields = {'family': _family,
                         'table': 'nat',
                         'chain': chain_name,
-                        'comment': "mailcow",
+                        'comment': "maimail",
                         'expr': expr_list }
 
         insert_dict = {'insert': {'rule': rule_fields} }
@@ -394,7 +394,7 @@ class NFTables:
           break
     return chain_handle
 
-  def get_rules_handle(self, _family: str, _table: str, chain_name: str, _comment_filter = "mailcow"):
+  def get_rules_handle(self, _family: str, _table: str, chain_name: str, _comment_filter = "maimail"):
     rule_handle = []
     # Command: 'nft list chain {family} {table} {chain_name}'
     _chain_opts = {'family': _family, 'table': _table, 'name': chain_name}
@@ -476,15 +476,15 @@ class NFTables:
           break
 
       if rule_handle is not None:
-        mailcow_rule = {'family': _family, 'table': 'filter', 'chain': self.chain_name, 'handle': rule_handle}
-        delete_rule = {'delete': {'rule': mailcow_rule} }
+        maimail_rule = {'family': _family, 'table': 'filter', 'chain': self.chain_name, 'handle': rule_handle}
+        delete_rule = {'delete': {'rule': maimail_rule} }
         json_command["nftables"].append(delete_rule)
       else:
         return False
 
     return json_command
 
-  def check_mailcow_chains(self, family: str, chain: str):
+  def check_maimail_chains(self, family: str, chain: str):
     position = 0
     rule_found = False
     chain_name = self.nft_chain_names[family]['filter'][chain]
@@ -501,7 +501,7 @@ class NFTables:
         if not _object.get("rule"):
           continue
         rule = _object["rule"]
-        if rule.get("comment") and rule["comment"] == "mailcow":
+        if rule.get("comment") and rule["comment"] == "maimail":
           rule_found = True
           break
 
@@ -509,14 +509,14 @@ class NFTables:
 
     return position if rule_found else False
 
-  def create_mailcow_isolation_rule(self, _interface:str, _dports:list, _allow:str = ""):
+  def create_maimail_isolation_rule(self, _interface:str, _dports:list, _allow:str = ""):
     family = "ip"
     table = "filter"
-    comment_filter_drop = "mailcow isolation"
-    comment_filter_allow = "mailcow isolation allow"
+    comment_filter_drop = "maimail isolation"
+    comment_filter_allow = "maimail isolation allow"
     json_command = self.get_base_dict()
 
-    # Delete old mailcow isolation rules
+    # Delete old maimail isolation rules
     handles = self.get_rules_handle(family, table, self.chain_name, comment_filter_drop)
     for handle in handles:
       self.delete_filter_rule(family, self.chain_name, handle)
@@ -524,7 +524,7 @@ class NFTables:
     for handle in handles:
       self.delete_filter_rule(family, self.chain_name, handle)
 
-    # insert mailcow isolation rule
+    # insert maimail isolation rule
     _match_dict_drop = [
       {
         "match": {
@@ -581,7 +581,7 @@ class NFTables:
     }}}
     json_command["nftables"].append(rule_drop)
 
-    # insert mailcow isolation allow rule
+    # insert maimail isolation allow rule
     if _allow != "":
       _match_dict_allow = [
         {

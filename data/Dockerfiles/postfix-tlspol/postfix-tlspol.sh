@@ -11,7 +11,7 @@ fi
 [[ ! -d /etc/postfix-tlspol ]] && mkdir -p /etc/postfix-tlspol
 [[ ! -d /var/lib/postfix-tlspol ]] && mkdir -p /var/lib/postfix-tlspol
 
-until dig +short mailcow.email > /dev/null; do
+until dig +short maimail.email > /dev/null; do
   echo "Waiting for DNS..."
   sleep 1
 done

@@ -75,10 +75,10 @@ class IPTables:
     filter_table.autocommit = False
     forward_chain = iptc.Chain(filter_table, "FORWARD")
     input_chain = iptc.Chain(filter_table, "INPUT")
-    mailcow_chain = iptc.Chain(filter_table, self.chain_name)
-    if mailcow_chain in filter_table.chains:
-      for rule in mailcow_chain.rules:
-        mailcow_chain.delete_rule(rule)
+    maimail_chain = iptc.Chain(filter_table, self.chain_name)
+    if maimail_chain in filter_table.chains:
+      for rule in maimail_chain.rules:
+        maimail_chain.delete_rule(rule)
       for rule in forward_chain.rules:
         if rule.target.name == self.chain_name:
           forward_chain.delete_rule(rule)
@@ -213,11 +213,11 @@ class IPTables:
     target.to_source = snat_target
     return rule
 
-  def create_mailcow_isolation_rule(self, _interface:str, _dports:list, _allow:str = ""):
+  def create_maimail_isolation_rule(self, _interface:str, _dports:list, _allow:str = ""):
     try:
       chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), self.chain_name)
 
-      # insert mailcow isolation rule
+      # insert maimail isolation rule
       rule = iptc.Rule()
       rule.in_interface = f'!{_interface}'
       rule.out_interface = _interface
@@ -230,7 +230,7 @@ class IPTables:
         chain.delete_rule(rule)
       chain.insert_rule(rule, position=0)
 
-      # insert mailcow isolation exception rule
+      # insert maimail isolation exception rule
       if _allow != "":
         rule = iptc.Rule()
         rule.src = _allow

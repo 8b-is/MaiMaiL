@@ -30,14 +30,14 @@ $(document).ready(function() {
   // create host cpu and mem charts
   createHostCpuAndMemChart();
   // check for new version
-  if (mailcow_info.branch === "master"){
-    check_update(mailcow_info.version_tag, mailcow_info.project_url);
+  if (maimail_info.branch === "master"){
+    check_update(maimail_info.version_tag, maimail_info.project_url);
   }
-  $("#mailcow_version").click(function(){
-    if (mailcow_cc_role !== "admin" && mailcow_cc_role !== "domainadmin" || mailcow_info.branch !== "master")
+  $("#maimail_version").click(function(){
+    if (maimail_cc_role !== "admin" && maimail_cc_role !== "domainadmin" || maimail_info.branch !== "master")
       return;
 
-    showVersionModal("Version " + mailcow_info.version_tag, mailcow_info.version_tag);
+    showVersionModal("Version " + maimail_info.version_tag, maimail_info.version_tag);
   })
   // get public ips
   $("#host_show_ip").click(function(){
@@ -480,7 +480,7 @@ jQuery(function($){
         type: "GET",
         url: "/api/v1/get/logs/ui",
         dataSrc: function(data){
-          return process_table_data(data, 'mailcow_ui');
+          return process_table_data(data, 'maimail_ui');
         }
       },
       columns: [
@@ -1157,7 +1157,7 @@ jQuery(function($){
           item.service = '';
         }
       });
-    } else if (table == 'mailcow_ui') {
+    } else if (table == 'maimail_ui') {
       $.each(data, function (i, item) {
         if (item === null) { return true; }
         item.user = escapeHtml(item.user);
@@ -1237,11 +1237,11 @@ jQuery(function($){
       var load_rows = (table.data().count() + 1) + '-' + (table.data().count() + new_nrows)
 
       $.get('/api/v1/get/logs/' + log_url + '/' + load_rows).then(function(data){
-        if (data.length === undefined) { mailcow_alert_box(lang.no_new_rows, "info"); return; }
+        if (data.length === undefined) { maimail_alert_box(lang.no_new_rows, "info"); return; }
         var rows = process_table_data(data, post_process);
         var rows_now = (table.page.len() + data.length);
         $(heading).children('.table-lines').text(rows_now)
-        mailcow_alert_box(data.length + lang.additional_rows, "success");
+        maimail_alert_box(data.length + lang.additional_rows, "success");
         table.rows.add(rows).draw();
       });
     }
@@ -1660,7 +1660,7 @@ function createHostCpuAndMemChart(){
     options: optionsMem
   });
 }
-// check for mailcow updates
+// check for maimail updates
 function check_update(current_version, github_repo_url){
   if (!current_version || !github_repo_url) return false;
 
@@ -1680,14 +1680,14 @@ function check_update(current_version, github_repo_url){
       var date_latest = new Date(latest_data.created_at);
       if (date_latest.getTime() <= date_current.getTime()){
         // no update available
-        $("#mailcow_update").removeClass("text-warning text-danger").addClass("text-success");
-        $("#mailcow_update").html("<b>" + lang_debug.no_update_available + "</b>");
+        $("#maimail_update").removeClass("text-warning text-danger").addClass("text-success");
+        $("#maimail_update").html("<b>" + lang_debug.no_update_available + "</b>");
       } else {
         // update available
-        $("#mailcow_update").removeClass("text-danger text-success").addClass("text-warning");
-        $("#mailcow_update").html(lang_debug.update_available + ` <a href="#" id="mailcow_update_changelog">`+latest_data.tag_name+`</a>`);
-        $("#mailcow_update_changelog").click(function(){
-          if (mailcow_cc_role !== "admin" && mailcow_cc_role !== "domainadmin")
+        $("#maimail_update").removeClass("text-danger text-success").addClass("text-warning");
+        $("#maimail_update").html(lang_debug.update_available + ` <a href="#" id="maimail_update_changelog">`+latest_data.tag_name+`</a>`);
+        $("#maimail_update_changelog").click(function(){
+          if (maimail_cc_role !== "admin" && maimail_cc_role !== "domainadmin")
             return;
 
           showVersionModal("New Release " + latest_data.tag_name, latest_data.tag_name);
@@ -1696,21 +1696,21 @@ function check_update(current_version, github_repo_url){
     }).catch(err => {
       // err
       console.log(err);
-      $("#mailcow_update").removeClass("text-success text-warning").addClass("text-danger");
-      $("#mailcow_update").html("<b>"+ lang_debug.update_failed +"</b>");
+      $("#maimail_update").removeClass("text-success text-warning").addClass("text-danger");
+      $("#maimail_update").html("<b>"+ lang_debug.update_failed +"</b>");
     });
   }).catch(err => {
     // err
     console.log(err);
-    $("#mailcow_update").removeClass("text-success text-warning").addClass("text-danger");
-    $("#mailcow_update").html("<b>"+ lang_debug.update_failed +"</b>");
+    $("#maimail_update").removeClass("text-success text-warning").addClass("text-danger");
+    $("#maimail_update").html("<b>"+ lang_debug.update_failed +"</b>");
   });
 }
 // show version changelog modal
 function showVersionModal(title, version){
   $.ajax({
     type: 'GET',
-    url: 'https://api.github.com/repos/' + mailcow_info.project_owner + '/' + mailcow_info.project_repo + '/releases/tags/' + version,
+    url: 'https://api.github.com/repos/' + maimail_info.project_owner + '/' + maimail_info.project_repo + '/releases/tags/' + version,
     dataType: 'json',
     success: function (data) {
       var md = window.markdownit();
@@ -1722,7 +1722,7 @@ function showVersionModal(title, version){
         <h3>` + data.name + `</h3>
         <span class="mt-4">` + result + `</span>
         <span><b>Github Link:</b>
-          <a target="_blank" href="https://github.com/` + mailcow_info.project_owner + `/` + mailcow_info.project_repo + `/releases/tag/` + version + `">` + version + `</a>
+          <a target="_blank" href="https://github.com/` + maimail_info.project_owner + `/` + maimail_info.project_repo + `/releases/tag/` + version + `">` + version + `</a>
         </span>
       `);
 
@@ -1744,9 +1744,9 @@ function parseGithubMarkdownLinks(inputText) {
       last_uri_path = last_uri_path[last_uri_path.length - 1];
 
       // adjust Full Changelog link to match last git version and new git version, if link is a compare link
-      if (matched.includes('/compare/') && mailcow_info.last_version_tag !== ''){
-        matched = matched.replace(last_uri_path,  mailcow_info.last_version_tag + '...' + mailcow_info.version_tag);
-        last_uri_path = mailcow_info.last_version_tag + '...' + mailcow_info.version_tag;
+      if (matched.includes('/compare/') && maimail_info.last_version_tag !== ''){
+        matched = matched.replace(last_uri_path,  maimail_info.last_version_tag + '...' + maimail_info.version_tag);
+        last_uri_path = maimail_info.last_version_tag + '...' + maimail_info.version_tag;
       }
 
       return '<a href="' + matched + '" target="_blank">' + last_uri_path + '</a><br>';

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-DEBIAN_DOCKER_IMAGE="ghcr.io/mailcow/backup:latest"
+DEBIAN_DOCKER_IMAGE="ghcr.io/maimail/backup:latest"
 
 if [[ ! -z ${MAILCOW_BACKUP_LOCATION} ]]; then
   BACKUP_LOCATION="${MAILCOW_BACKUP_LOCATION}"
@@ -76,7 +76,7 @@ fi
 echo "Using ${BACKUP_LOCATION} as backup/restore location."
 echo
 
-source ${SCRIPT_DIR}/../mailcow.conf
+source ${SCRIPT_DIR}/../maimail.conf
 
 if [[ -z ${COMPOSE_PROJECT_NAME} ]]; then
   echo "Could not determine compose project name"
@@ -94,10 +94,10 @@ fi
 
 function backup() {
   DATE=$(date +"%Y-%m-%d-%H-%M-%S")
-  mkdir -p "${BACKUP_LOCATION}/mailcow-${DATE}"
-  chmod 755 "${BACKUP_LOCATION}/mailcow-${DATE}"
-  cp "${SCRIPT_DIR}/../mailcow.conf" "${BACKUP_LOCATION}/mailcow-${DATE}"
-  touch "${BACKUP_LOCATION}/mailcow-${DATE}/.$ARCH"
+  mkdir -p "${BACKUP_LOCATION}/maimail-${DATE}"
+  chmod 755 "${BACKUP_LOCATION}/maimail-${DATE}"
+  cp "${SCRIPT_DIR}/../maimail.conf" "${BACKUP_LOCATION}/maimail-${DATE}"
+  touch "${BACKUP_LOCATION}/maimail-${DATE}/.$ARCH"
   for bin in docker; do
   if [[ -z $(which ${bin}) ]]; then
     >&2 echo -e "\e[31mCannot find ${bin} in local PATH, exiting...\e[0m"
@@ -107,33 +107,33 @@ function backup() {
   while (( "$#" )); do
     case "$1" in
     vmail|all)
-      docker run --name mailcow-backup --rm \
-        -v ${BACKUP_LOCATION}/mailcow-${DATE}:/backup:z \
+      docker run --name maimail-backup --rm \
+        -v ${BACKUP_LOCATION}/maimail-${DATE}:/backup:z \
         -v $(docker volume ls -qf name=^${CMPS_PRJ}_vmail-vol-1$):/vmail:ro,z \
         ${DEBIAN_DOCKER_IMAGE} /bin/tar --warning='no-file-ignored' --use-compress-program="pigz --rsyncable -p ${THREADS}" -Pcvpf /backup/backup_vmail.tar.gz /vmail
       ;;&
     crypt|all)
-      docker run --name mailcow-backup --rm \
-        -v ${BACKUP_LOCATION}/mailcow-${DATE}:/backup:z \
+      docker run --name maimail-backup --rm \
+        -v ${BACKUP_LOCATION}/maimail-${DATE}:/backup:z \
         -v $(docker volume ls -qf name=^${CMPS_PRJ}_crypt-vol-1$):/crypt:ro,z \
         ${DEBIAN_DOCKER_IMAGE} /bin/tar --warning='no-file-ignored' --use-compress-program="pigz --rsyncable -p ${THREADS}" -Pcvpf /backup/backup_crypt.tar.gz /crypt
       ;;&
     redis|all)
-      docker exec $(docker ps -qf name=redis-mailcow) redis-cli -a ${REDISPASS} --no-auth-warning save
-      docker run --name mailcow-backup --rm \
-        -v ${BACKUP_LOCATION}/mailcow-${DATE}:/backup:z \
+      docker exec $(docker ps -qf name=redis-maimail) redis-cli -a ${REDISPASS} --no-auth-warning save
+      docker run --name maimail-backup --rm \
+        -v ${BACKUP_LOCATION}/maimail-${DATE}:/backup:z \
         -v $(docker volume ls -qf name=^${CMPS_PRJ}_redis-vol-1$):/redis:ro,z \
         ${DEBIAN_DOCKER_IMAGE} /bin/tar --warning='no-file-ignored' --use-compress-program="pigz --rsyncable -p ${THREADS}" -Pcvpf /backup/backup_redis.tar.gz /redis
       ;;&
     rspamd|all)
-      docker run --name mailcow-backup --rm \
-        -v ${BACKUP_LOCATION}/mailcow-${DATE}:/backup:z \
+      docker run --name maimail-backup --rm \
+        -v ${BACKUP_LOCATION}/maimail-${DATE}:/backup:z \
         -v $(docker volume ls -qf name=^${CMPS_PRJ}_rspamd-vol-1$):/rspamd:ro,z \
         ${DEBIAN_DOCKER_IMAGE} /bin/tar --warning='no-file-ignored' --use-compress-program="pigz --rsyncable -p ${THREADS}" -Pcvpf /backup/backup_rspamd.tar.gz /rspamd
       ;;&
     postfix|all)
-      docker run --name mailcow-backup --rm \
-        -v ${BACKUP_LOCATION}/mailcow-${DATE}:/backup:z \
+      docker run --name maimail-backup --rm \
+        -v ${BACKUP_LOCATION}/maimail-${DATE}:/backup:z \
         -v $(docker volume ls -qf name=^${CMPS_PRJ}_postfix-vol-1$):/postfix:ro,z \
         ${DEBIAN_DOCKER_IMAGE} /bin/tar --warning='no-file-ignored' --use-compress-program="pigz --rsyncable -p ${THREADS}" -Pcvpf /backup/backup_postfix.tar.gz /postfix
       ;;&
@@ -145,12 +145,12 @@ function backup() {
         continue
       else
         echo "Using SQL image ${SQLIMAGE}, starting..."
-        docker run --name mailcow-backup --rm \
-          --network $(docker network ls -qf name=^${CMPS_PRJ}_mailcow-network$) \
+        docker run --name maimail-backup --rm \
+          --network $(docker network ls -qf name=^${CMPS_PRJ}_maimail-network$) \
           -v $(docker volume ls -qf name=^${CMPS_PRJ}_mysql-vol-1$):/var/lib/mysql/:ro,z \
           -t --entrypoint= \
           --sysctl net.ipv6.conf.all.disable_ipv6=1 \
-          -v ${BACKUP_LOCATION}/mailcow-${DATE}:/backup:z \
+          -v ${BACKUP_LOCATION}/maimail-${DATE}:/backup:z \
           ${SQLIMAGE} /bin/sh -c "mariabackup --host mysql --user root --password ${DBROOT} --backup --rsync --target-dir=/backup_mariadb ; \
           mariabackup --prepare --target-dir=/backup_mariadb ; \
           chown -R 999:999 /backup_mariadb ; \
@@ -160,7 +160,7 @@ function backup() {
     --delete-days)
       shift
       if [[ "${1}" =~ ^[0-9]+$ ]]; then
-        find ${BACKUP_LOCATION}/mailcow-* -maxdepth 0 -mmin +$((${1}*60*24)) -exec rm -rvf {} \;
+        find ${BACKUP_LOCATION}/maimail-* -maxdepth 0 -mmin +$((${1}*60*24)) -exec rm -rvf {} \;
       else
         echo "Parameter of --delete-days is not a number."
       fi
@@ -185,52 +185,52 @@ function restore() {
     COMPOSE_COMMAND="docker-compose"
 
   else
-    echo -e "\e[31mCan not read DOCKER_COMPOSE_VERSION variable from mailcow.conf! Is your mailcow up to date? Exiting...\e[0m"
+    echo -e "\e[31mCan not read DOCKER_COMPOSE_VERSION variable from maimail.conf! Is your maimail up to date? Exiting...\e[0m"
     exit 1
   fi
 
   echo
-  echo "Stopping watchdog-mailcow..."
-  docker stop $(docker ps -qf name=watchdog-mailcow)
+  echo "Stopping watchdog-maimail..."
+  docker stop $(docker ps -qf name=watchdog-maimail)
   echo
   RESTORE_LOCATION="${1}"
   shift
   while (( "$#" )); do
     case "$1" in
     vmail)
-      docker stop $(docker ps -qf name=dovecot-mailcow)
-      docker run -i --name mailcow-backup --rm \
+      docker stop $(docker ps -qf name=dovecot-maimail)
+      docker run -i --name maimail-backup --rm \
         -v ${RESTORE_LOCATION}:/backup:z \
         -v $(docker volume ls -qf name=^${CMPS_PRJ}_vmail-vol-1$):/vmail:z \
         ${DEBIAN_DOCKER_IMAGE} /bin/tar --use-compress-program="pigz -d -p ${THREADS}" -Pxvf /backup/backup_vmail.tar.gz
-      docker start $(docker ps -aqf name=dovecot-mailcow)
+      docker start $(docker ps -aqf name=dovecot-maimail)
       echo
       echo "In most cases it is not required to run a full resync, you can run the command printed below at any time after testing wether the restore process broke a mailbox:"
       echo
-      echo "docker exec $(docker ps -qf name=dovecot-mailcow) doveadm force-resync -A '*'"
+      echo "docker exec $(docker ps -qf name=dovecot-maimail) doveadm force-resync -A '*'"
       echo
       read -p "Force a resync now? [y|N] " FORCE_RESYNC
       if [[ ${FORCE_RESYNC,,} =~ ^(yes|y)$ ]]; then
-        docker exec $(docker ps -qf name=dovecot-mailcow) doveadm force-resync -A '*'
+        docker exec $(docker ps -qf name=dovecot-maimail) doveadm force-resync -A '*'
       else
         echo "OK, skipped."
       fi
       ;;
     redis)
-      docker stop $(docker ps -qf name=redis-mailcow)
-      docker run -i --name mailcow-backup --rm \
+      docker stop $(docker ps -qf name=redis-maimail)
+      docker run -i --name maimail-backup --rm \
         -v ${RESTORE_LOCATION}:/backup:z \
         -v $(docker volume ls -qf name=^${CMPS_PRJ}_redis-vol-1$):/redis:z \
         ${DEBIAN_DOCKER_IMAGE} /bin/tar --use-compress-program="pigz -d -p ${THREADS}" -Pxvf /backup/backup_redis.tar.gz
-      docker start $(docker ps -aqf name=redis-mailcow)
+      docker start $(docker ps -aqf name=redis-maimail)
       ;;
     crypt)
-      docker stop $(docker ps -qf name=dovecot-mailcow)
-      docker run -i --name mailcow-backup --rm \
+      docker stop $(docker ps -qf name=dovecot-maimail)
+      docker run -i --name maimail-backup --rm \
         -v ${RESTORE_LOCATION}:/backup:z \
         -v $(docker volume ls -qf name=^${CMPS_PRJ}_crypt-vol-1$):/crypt:z \
         ${DEBIAN_DOCKER_IMAGE} /bin/tar --use-compress-program="pigz -d -p ${THREADS}" -Pxvf /backup/backup_crypt.tar.gz
-      docker start $(docker ps -aqf name=dovecot-mailcow)
+      docker start $(docker ps -aqf name=dovecot-maimail)
       ;;
     rspamd)
       if [[ $(find "${RESTORE_LOCATION}" \( -name '*x86*' -o -name '*aarch*' \) -exec basename {} \; | sed 's/^\.//' | sed 's/^\.//') == "" ]]; then
@@ -238,32 +238,32 @@ function restore() {
         sleep 2
         echo -e "Continuing anyhow. If rspamd is crashing upon boot try remove the rspamd volume with docker volume rm ${CMPS_PRJ}_rspamd-vol-1 after you've stopped the stack.\e[0m"
         sleep 2
-        docker stop $(docker ps -qf name=rspamd-mailcow)
-        docker run -i --name mailcow-backup --rm \
+        docker stop $(docker ps -qf name=rspamd-maimail)
+        docker run -i --name maimail-backup --rm \
           -v ${RESTORE_LOCATION}:/backup:z \
           -v $(docker volume ls -qf name=^${CMPS_PRJ}_rspamd-vol-1$):/rspamd:z \
           ${DEBIAN_DOCKER_IMAGE} /bin/tar --use-compress-program="pigz -d -p ${THREADS}" -Pxvf /backup/backup_rspamd.tar.gz
-        docker start $(docker ps -aqf name=rspamd-mailcow)
+        docker start $(docker ps -aqf name=rspamd-maimail)
       elif [[ $ARCH != $(find "${RESTORE_LOCATION}" \( -name '*x86*' -o -name '*aarch*' \) -exec basename {} \; | sed 's/^\.//' | sed 's/^\.//') ]]; then
-        echo -e "\e[31mThe Architecture of the backed up mailcow OS is different then your restoring mailcow OS..."
+        echo -e "\e[31mThe Architecture of the backed up maimail OS is different then your restoring maimail OS..."
         sleep 2
         echo -e "Skipping rspamd due to compatibility issues!\e[0m"
       else
-        docker stop $(docker ps -qf name=rspamd-mailcow)
-        docker run -i --name mailcow-backup --rm \
+        docker stop $(docker ps -qf name=rspamd-maimail)
+        docker run -i --name maimail-backup --rm \
           -v ${RESTORE_LOCATION}:/backup:z \
           -v $(docker volume ls -qf name=^${CMPS_PRJ}_rspamd-vol-1$):/rspamd:z \
           ${DEBIAN_DOCKER_IMAGE} /bin/tar --use-compress-program="pigz -d -p ${THREADS}" -Pxvf /backup/backup_rspamd.tar.gz
-        docker start $(docker ps -aqf name=rspamd-mailcow)
+        docker start $(docker ps -aqf name=rspamd-maimail)
       fi
       ;;
     postfix)
-      docker stop $(docker ps -qf name=postfix-mailcow)
-      docker run -i --name mailcow-backup --rm \
+      docker stop $(docker ps -qf name=postfix-maimail)
+      docker run -i --name maimail-backup --rm \
         -v ${RESTORE_LOCATION}:/backup:z \
         -v $(docker volume ls -qf name=^${CMPS_PRJ}_postfix-vol-1$):/postfix:z \
         ${DEBIAN_DOCKER_IMAGE} /bin/tar --use-compress-program="pigz -d -p ${THREADS}" -Pxvf /backup/backup_postfix.tar.gz
-      docker start $(docker ps -aqf name=postfix-mailcow)
+      docker start $(docker ps -aqf name=postfix-maimail)
       ;;
     mysql|mariadb)
       SQLIMAGE=$(grep -iEo '(mysql|mariadb)\:.+' ${COMPOSE_FILE})
@@ -271,31 +271,31 @@ function restore() {
         echo "Could not determine SQL image version, skipping restore..."
         shift
         continue
-      elif [ ! -f "${RESTORE_LOCATION}/mailcow.conf" ]; then
-        echo "Could not find the corresponding mailcow.conf in ${RESTORE_LOCATION}, skipping restore."
-        echo "If you lost that file, copy the last working mailcow.conf file to ${RESTORE_LOCATION} and restart the restore process."
+      elif [ ! -f "${RESTORE_LOCATION}/maimail.conf" ]; then
+        echo "Could not find the corresponding maimail.conf in ${RESTORE_LOCATION}, skipping restore."
+        echo "If you lost that file, copy the last working maimail.conf file to ${RESTORE_LOCATION} and restart the restore process."
         shift
         continue
       else
-        read -p "mailcow will be stopped and the currently active mailcow.conf will be modified to use the DB parameters found in ${RESTORE_LOCATION}/mailcow.conf - do you want to proceed? [Y|n] " MYSQL_STOP_MAILCOW
+        read -p "maimail will be stopped and the currently active maimail.conf will be modified to use the DB parameters found in ${RESTORE_LOCATION}/maimail.conf - do you want to proceed? [Y|n] " MYSQL_STOP_MAILCOW
         if [[ ${MYSQL_STOP_MAILCOW,,} =~ ^(no|n|N)$ ]]; then
           echo "OK, skipped."
           shift
           continue
         else
-          echo "Stopping mailcow..."
+          echo "Stopping maimail..."
           ${COMPOSE_COMMAND} -f ${COMPOSE_FILE} --env-file ${ENV_FILE} down
         fi
-        #docker stop $(docker ps -qf name=mysql-mailcow)
+        #docker stop $(docker ps -qf name=mysql-maimail)
         if [[ -d "${RESTORE_LOCATION}/mysql" ]]; then
-        docker run --name mailcow-backup --rm \
+        docker run --name maimail-backup --rm \
           -v $(docker volume ls -qf name=^${CMPS_PRJ}_mysql-vol-1$):/var/lib/mysql/:rw,z \
           --entrypoint= \
           -v ${RESTORE_LOCATION}/mysql:/backup:z \
           ${SQLIMAGE} /bin/bash -c "shopt -s dotglob ; /bin/rm -rf /var/lib/mysql/* ; rsync -avh --usermap=root:mysql --groupmap=root:mysql /backup/ /var/lib/mysql/"
         elif [[ -f "${RESTORE_LOCATION}/backup_mysql.gz" ]]; then
         docker run \
-          -i --name mailcow-backup --rm \
+          -i --name maimail-backup --rm \
           -v $(docker volume ls -qf name=^${CMPS_PRJ}_mysql-vol-1$):/var/lib/mysql/:z \
           --entrypoint= \
           -u mysql \
@@ -306,7 +306,7 @@ function restore() {
           gunzip < backup/backup_mysql.gz | mysql -uroot && \
           mysql -uroot -e SHUTDOWN;"
         elif [[ -f "${RESTORE_LOCATION}/backup_mariadb.tar.gz" ]]; then
-        docker run --name mailcow-backup --rm \
+        docker run --name maimail-backup --rm \
           -v $(docker volume ls -qf name=^${CMPS_PRJ}_mysql-vol-1$):/backup_mariadb/:rw,z \
           --entrypoint= \
           -v ${RESTORE_LOCATION}:/backup:z \
@@ -314,24 +314,24 @@ function restore() {
             /bin/rm -rf /backup_mariadb/* ; \
             /bin/tar -Pxvzf /backup/backup_mariadb.tar.gz"
         fi
-        echo "Modifying mailcow.conf..."
-        source ${RESTORE_LOCATION}/mailcow.conf
-        sed -i --follow-symlinks "/DBNAME/c\DBNAME=${DBNAME}" ${SCRIPT_DIR}/../mailcow.conf
-        sed -i --follow-symlinks "/DBUSER/c\DBUSER=${DBUSER}" ${SCRIPT_DIR}/../mailcow.conf
-        sed -i --follow-symlinks "/DBPASS/c\DBPASS=${DBPASS}" ${SCRIPT_DIR}/../mailcow.conf
-        sed -i --follow-symlinks "/DBROOT/c\DBROOT=${DBROOT}" ${SCRIPT_DIR}/../mailcow.conf
-        source ${SCRIPT_DIR}/../mailcow.conf
-        echo "Starting mailcow..."
+        echo "Modifying maimail.conf..."
+        source ${RESTORE_LOCATION}/maimail.conf
+        sed -i --follow-symlinks "/DBNAME/c\DBNAME=${DBNAME}" ${SCRIPT_DIR}/../maimail.conf
+        sed -i --follow-symlinks "/DBUSER/c\DBUSER=${DBUSER}" ${SCRIPT_DIR}/../maimail.conf
+        sed -i --follow-symlinks "/DBPASS/c\DBPASS=${DBPASS}" ${SCRIPT_DIR}/../maimail.conf
+        sed -i --follow-symlinks "/DBROOT/c\DBROOT=${DBROOT}" ${SCRIPT_DIR}/../maimail.conf
+        source ${SCRIPT_DIR}/../maimail.conf
+        echo "Starting maimail..."
         ${COMPOSE_COMMAND} -f ${COMPOSE_FILE} --env-file ${ENV_FILE} up -d
-        #docker start $(docker ps -aqf name=mysql-mailcow)
+        #docker start $(docker ps -aqf name=mysql-maimail)
       fi
       ;;
     esac
     shift
   done
   echo
-  echo "Starting watchdog-mailcow..."
-  docker start $(docker ps -aqf name=watchdog-mailcow)
+  echo "Starting watchdog-maimail..."
+  docker start $(docker ps -aqf name=watchdog-maimail)
 }
 
 if [[ ${1} == "backup" ]]; then
@@ -339,11 +339,11 @@ if [[ ${1} == "backup" ]]; then
 elif [[ ${1} == "restore" ]]; then
   i=1
   declare -A FOLDER_SELECTION
-  if [[ $(find ${BACKUP_LOCATION}/mailcow-* -maxdepth 1 -type d 2> /dev/null| wc -l) -lt 1 ]]; then
+  if [[ $(find ${BACKUP_LOCATION}/maimail-* -maxdepth 1 -type d 2> /dev/null| wc -l) -lt 1 ]]; then
     echo "Selected backup location has no subfolders"
     exit 1
   fi
-  for folder in $(ls -d ${BACKUP_LOCATION}/mailcow-*/); do
+  for folder in $(ls -d ${BACKUP_LOCATION}/maimail-*/); do
     echo "[ ${i} ] - ${folder}"
     FOLDER_SELECTION[${i}]="${folder}"
     ((i++))

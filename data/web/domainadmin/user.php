@@ -2,7 +2,7 @@
 require_once $_SERVER['DOCUMENT_ROOT'] . '/inc/prerequisites.inc.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/inc/triggers.domainadmin.inc.php';
 
-if (isset($_SESSION['mailcow_cc_role']) && $_SESSION['mailcow_cc_role'] == 'domainadmin') {
+if (isset($_SESSION['maimail_cc_role']) && $_SESSION['maimail_cc_role'] == 'domainadmin') {
 
   /*
   / DOMAIN ADMIN
@@ -12,7 +12,7 @@ if (isset($_SESSION['mailcow_cc_role']) && $_SESSION['mailcow_cc_role'] == 'doma
   $_SESSION['return_to'] = $_SERVER['REQUEST_URI'];
   $tfa_data = get_tfa();
   $fido2_data = fido2(array("action" => "get_friendly_names"));
-  $username = $_SESSION['mailcow_cc_username'];
+  $username = $_SESSION['maimail_cc_username'];
 
   $template = 'domainadmin.twig';
   $template_data = [
@@ -25,11 +25,11 @@ if (isset($_SESSION['mailcow_cc_role']) && $_SESSION['mailcow_cc_role'] == 'doma
     'lang_datatables' => json_encode($lang['datatables']),
   ];
 }
-elseif (isset($_SESSION['mailcow_cc_role']) && $_SESSION['mailcow_cc_role'] == 'admin') {
+elseif (isset($_SESSION['maimail_cc_role']) && $_SESSION['maimail_cc_role'] == 'admin') {
   header('Location: /admin/dashboard');
   exit();
 }
-elseif (isset($_SESSION['mailcow_cc_role']) && $_SESSION['mailcow_cc_role'] == 'user') {
+elseif (isset($_SESSION['maimail_cc_role']) && $_SESSION['maimail_cc_role'] == 'user') {
   header('Location: /user');
   exit();
 }

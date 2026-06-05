@@ -6,7 +6,7 @@ use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
 
 error_reporting(0);
-if (isset($_SESSION['mailcow_cc_role']) && $_SESSION['mailcow_cc_role'] == "admin") {
+if (isset($_SESSION['maimail_cc_role']) && $_SESSION['maimail_cc_role'] == "admin") {
   $transport_id = intval($_GET['transport_id']);
   $transport_type = $_GET['transport_type'];
   if (isset($_GET['mail_from']) && filter_var($_GET['mail_from'], FILTER_VALIDATE_EMAIL)) {
@@ -19,7 +19,7 @@ if (isset($_SESSION['mailcow_cc_role']) && $_SESSION['mailcow_cc_role'] == "admi
     $mail_rcpt = $_GET['mail_rcpt'];
   }
   else {
-    $mail_rcpt = "null@hosted.mailcow.de";
+    $mail_rcpt = "null@hosted.maimail.de";
   }
   if ($transport_type == 'transport-map') {
     $transport_details = transport('details', $transport_id);

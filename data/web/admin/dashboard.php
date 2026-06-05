@@ -2,15 +2,15 @@
 require_once $_SERVER['DOCUMENT_ROOT'] . '/inc/prerequisites.inc.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/inc/triggers.admin.inc.php';
 
-if (isset($_SESSION['mailcow_cc_role']) && $_SESSION['mailcow_cc_role'] == 'domainadmin') {
+if (isset($_SESSION['maimail_cc_role']) && $_SESSION['maimail_cc_role'] == 'domainadmin') {
   header('Location: /domainadmin/mailbox');
   exit();
 }
-elseif (isset($_SESSION['mailcow_cc_role']) && $_SESSION['mailcow_cc_role'] == 'user') {
+elseif (isset($_SESSION['maimail_cc_role']) && $_SESSION['maimail_cc_role'] == 'user') {
   header('Location: /user');
   exit();
 }
-elseif (!isset($_SESSION['mailcow_cc_role']) || $_SESSION['mailcow_cc_role'] != "admin") {
+elseif (!isset($_SESSION['maimail_cc_role']) || $_SESSION['maimail_cc_role'] != "admin") {
   header('Location: /admin');
   exit();
 }
@@ -29,12 +29,12 @@ $js_minifier->add('/web/js/site/dashboard.js');
 
 // vmail df
 $exec_fields = array('cmd' => 'system', 'task' => 'df', 'dir' => '/var/vmail');
-$vmail_df = explode(',', (string)json_decode(docker('post', 'dovecot-mailcow', 'exec', $exec_fields), true));
+$vmail_df = explode(',', (string)json_decode(docker('post', 'dovecot-maimail', 'exec', $exec_fields), true));
 
 // containers
 $containers_info = (array) docker('info');
-if ($clamd_status === false) unset($containers_info['clamd-mailcow']);
-if ($olefy_status === false) unset($containers_info['olefy-mailcow']);
+if ($clamd_status === false) unset($containers_info['clamd-maimail']);
+if ($olefy_status === false) unset($containers_info['olefy-maimail']);
 ksort($containers_info);
 $containers = array();
 foreach ($containers_info as $container => $container_info) {
@@ -66,7 +66,7 @@ foreach ($containers_info as $container => $container_info) {
   $containers[$container] = $container_info;
 }
 
-// get mailcow data
+// get maimail data
 $hostname = getenv('MAILCOW_HOSTNAME');
 $timezone = getenv('TZ');
 

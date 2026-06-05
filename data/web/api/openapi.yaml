@@ -1,13 +1,13 @@
 openapi: 3.1.0
 info:
   description: >-
-    mailcow is complete e-mailing solution with advanced antispam, antivirus,
+    maimail is complete e-mailing solution with advanced antispam, antivirus,
     nice UI and API.
 
 
     In order to use this API you have to create a API key and add your IP
     address to the whitelist of allowed IPs this can be done by logging into the
-    Mailcow UI using your admin account, then go to Configuration > Access >
+    MaiMaiL UI using your admin account, then go to Configuration > Access >
     Edit administrator details > API. There you will find a collapsed API menu.
 
 
@@ -15,7 +15,7 @@ info:
       - The read only key can only be used for all get endpoints
       - The read write key can be used for all endpoints
 
-  title: mailcow API
+  title: maimail API
   version: "1.0.0"
 
 servers:
@@ -176,7 +176,7 @@ paths:
       description: >-
         You may create a time limited alias using this action. It takes a JSON
         object containing a domain and mailbox informations.
-        Mailcow will generate a random alias.
+        MaiMaiL will generate a random alias.
       operationId: Create time limited alias
       requestBody:
         content:
@@ -297,7 +297,7 @@ paths:
                         - add
                         - active: "1"
                           bcc_dest: bcc@awesomecow.tld
-                          local_dest: mailcow.tld
+                          local_dest: maimail.tld
                           type: sender
                         - null
                       msg: bcc_saved
@@ -333,7 +333,7 @@ paths:
               example:
                 active: "1"
                 bcc_dest: bcc@awesomecow.tld
-                local_dest: mailcow.tld
+                local_dest: maimail.tld
                 type: sender
               properties:
                 active:
@@ -400,7 +400,7 @@ paths:
             schema:
               example:
                 dkim_selector: dkim
-                domains: mailcow.tld
+                domains: maimail.tld
                 key_size: "2048"
               properties:
                 dkim_selector:
@@ -428,11 +428,11 @@ paths:
                     - log:
                         - dkim
                         - duplicate
-                        - from_domain: mailcow.tld
+                        - from_domain: maimail.tld
                           to_domain: awesomecow.tld
                       msg:
                         - dkim_duplicated
-                        - mailcow.tld
+                        - maimail.tld
                         - awesomecow.tld
                       type: success
               schema:
@@ -462,7 +462,7 @@ paths:
           application/json:
             schema:
               example:
-                from_domain: mailcow.tld
+                from_domain: maimail.tld
                 to_domain: awesomecow.tld
               properties:
                 fron_domain:
@@ -639,7 +639,7 @@ paths:
                         - domain_admin
                         - add
                         - active: "1"
-                          domains: mailcow.tld
+                          domains: maimail.tld
                           password: "*"
                           password2: "*"
                           username: testadmin
@@ -678,7 +678,7 @@ paths:
             schema:
               example:
                 active: "1"
-                domains: mailcow.tld
+                domains: maimail.tld
                 password: supersecurepw
                 password2: supersecurepw
                 username: testadmin
@@ -1003,7 +1003,7 @@ paths:
                         - fwdhost
                         - add
                         - filter_spam: "0"
-                          hostname: hosted.mailcow.de
+                          hostname: hosted.maimail.de
                       msg:
                         - forwarding_host_added
                         - "5.1.76.202, 2a00:f820:417::202"
@@ -1029,7 +1029,7 @@ paths:
       tags:
         - Fordwarding Hosts
       description: >-
-        Add a new Forwarding host to mailcow. You can chose to enable or disable
+        Add a new Forwarding host to maimail. You can chose to enable or disable
         spam filtering of incoming emails by specifing `filter_spam` 0 =
         inactive, 1 = active.
       operationId: Add Forward Host
@@ -1039,7 +1039,7 @@ paths:
             schema:
               example:
                 filter_spam: "0"
-                hostname: hosted.mailcow.de
+                hostname: hosted.maimail.de
               properties:
                 filter_spam:
                   description: "1 to enable spam filter, 0 to disable spam filter"
@@ -1113,7 +1113,7 @@ paths:
                 domain: domain.tld
                 local_part: info
                 name: Full name
-                authsource: mailcow
+                authsource: maimail
                 password: atedismonsin
                 password2: atedismonsin
                 quota: "3072"
@@ -1137,13 +1137,13 @@ paths:
                 authsource:
                   description: Specifies the authentication source for the mailbox.
                   type: string
-                  enum: [mailcow, ldap, keycloak, generic-oidc]
-                  default: mailcow
+                  enum: [maimail, ldap, keycloak, generic-oidc]
+                  default: maimail
                 password2:
                   description: mailbox password for confirmation
                   type: string
                 password:
-                  description: mailbox password when using `mailcow` as the authentication source.
+                  description: mailbox password when using `maimail` as the authentication source.
                   type: string
                 quota:
                   description: mailbox quota
@@ -1175,7 +1175,7 @@ paths:
                         - oauth2
                         - add
                         - client
-                        - redirect_uri: "https://mailcow.tld"
+                        - redirect_uri: "https://maimail.tld"
                       msg: Added client access
                       type: success
               schema:
@@ -1205,7 +1205,7 @@ paths:
           application/json:
             schema:
               example:
-                redirect_uri: "https://mailcow.tld"
+                redirect_uri: "https://maimail.tld"
               properties:
                 redirect_uri:
                   description: the uri where you should be redirected after oAuth
@@ -1227,12 +1227,12 @@ paths:
                         - recipient_map
                         - add
                         - active: "1"
-                          recipient_map_new: target@mailcow.tld
-                          recipient_map_old: recipient@mailcow.tld
+                          recipient_map_new: target@maimail.tld
+                          recipient_map_old: recipient@maimail.tld
                         - null
                       msg:
                         - recipient_map_entry_saved
-                        - recipient@mailcow.tld
+                        - recipient@maimail.tld
                       type: success
               schema:
                 properties:
@@ -1264,8 +1264,8 @@ paths:
             schema:
               example:
                 active: "1"
-                recipient_map_new: target@mailcow.tld
-                recipient_map_old: recipient@mailcow.tld
+                recipient_map_new: target@maimail.tld
+                recipient_map_old: recipient@maimail.tld
               properties:
                 active:
                   description: 1 for a active user account 0 for a disabled user account
@@ -1292,7 +1292,7 @@ paths:
                     - log:
                         - relayhost
                         - add
-                        - hostname: "mailcow.tld:25"
+                        - hostname: "maimail.tld:25"
                           password: supersecurepassword
                           username: testuser
                       msg:
@@ -1326,7 +1326,7 @@ paths:
           application/json:
             schema:
               example:
-                hostname: "mailcow.tld:25"
+                hostname: "maimail.tld:25"
                 password: supersecurepassword
                 username: testuser
               properties:
@@ -1358,7 +1358,7 @@ paths:
                         - resource
                         - active: "1"
                           description: test
-                          domain: mailcow.tld
+                          domain: maimail.tld
                           kind: location
                           multiple_bookings: "0"
                           multiple_bookings_custom: ""
@@ -1366,7 +1366,7 @@ paths:
                         - null
                       msg:
                         - resource_added
-                        - mailcow.tld
+                        - maimail.tld
                       type: success
               schema:
                 properties:
@@ -1397,7 +1397,7 @@ paths:
               example:
                 active: "1"
                 description: test
-                domain: mailcow.tld
+                domain: maimail.tld
                 kind: location
                 multiple_bookings: "0"
                 multiple_bookings_custom: ""
@@ -1507,10 +1507,10 @@ paths:
           application/json:
             schema:
               example:
-                username: lisa@mailcow.tld
-                host1: mail.mailcow.tld
+                username: lisa@maimail.tld
+                host1: mail.maimail.tld
                 port1: "143"
-                user1: demo@mailcow.tld
+                user1: demo@maimail.tld
                 password1: supersecretpw
                 enc1: TLS
                 mins_interval: "20"
@@ -1530,7 +1530,7 @@ paths:
                 active: "1"
               properties:
                 parameters:
-                  description: your local mailcow mailbox
+                  description: your local maimail mailbox
                   type: string
                 host1:
                   description: the smtp server where mails should be synced from
@@ -1609,12 +1609,12 @@ paths:
                         - add
                         - parameters: ""
                           active: "1"
-                          dest: mailcow.tld
+                          dest: maimail.tld
                           policy: encrypt
                         - null
                       msg:
                         - tls_policy_map_entry_saved
-                        - mailcow.tld
+                        - maimail.tld
                       type: success
               schema:
                 properties:
@@ -1645,7 +1645,7 @@ paths:
               example:
                 parameters: ""
                 active: "1"
-                dest: mailcow.tld
+                dest: maimail.tld
                 policy: encrypt
               properties:
                 parameters:
@@ -1936,10 +1936,10 @@ paths:
                         - dkim
                         - delete
                         - domains:
-                            - mailcow.tld
+                            - maimail.tld
                       msg:
                         - dkim_removed
-                        - mailcow.tld
+                        - maimail.tld
                       type: success
               schema:
                 properties:
@@ -1969,7 +1969,7 @@ paths:
             schema:
               items:
                 example:
-                  - mailcow.tld
+                  - maimail.tld
                 type: string
               type: array
       summary: Delete DKIM Key
@@ -2585,11 +2585,11 @@ paths:
                         - delete
                         - resource
                         - name:
-                            - test@mailcow.tld
+                            - test@maimail.tld
                         - null
                       msg:
                         - resource_removed
-                        - test@mailcow.tld
+                        - test@maimail.tld
                       type: success
               schema:
                 properties:
@@ -2620,7 +2620,7 @@ paths:
           application/json:
             schema:
               example:
-                - test@mailcow.tld
+                - test@maimail.tld
               properties:
                 items:
                   description: contains list of Resources you want to delete
@@ -3163,15 +3163,15 @@ paths:
                       - edit
                       - domain_wide_footer
                       - domains:
-                          - mailcow.tld
+                          - maimail.tld
                         html: "<br>foo {= foo =}"
                         plain: "<foo {= foo =}"
                         mbox_exclude:
-                          - moo@mailcow.tld
+                          - moo@maimail.tld
                       - null
                     msg:
                       - domain_footer_modified
-                      - mailcow.tld
+                      - maimail.tld
                     type: success
               schema:
                 properties:
@@ -3205,8 +3205,8 @@ paths:
                   html: "<br>foo {= foo =}"
                   plain: "foo {= foo =}"
                   mbox_exclude:
-                    - moo@mailcow.tld
-                items: mailcow.tld
+                    - moo@maimail.tld
+                items: maimail.tld
               properties:
                 attr:
                   properties:
@@ -3273,7 +3273,7 @@ paths:
                   netban_ipv4: "24"
                   netban_ipv6: "64"
                   retry_window: "600"
-                  whitelist: mailcow.tld
+                  whitelist: maimail.tld
                 items: none
               properties:
                 attr:
@@ -3381,7 +3381,7 @@ paths:
                   active: "1"
                   force_pw_update: "0"
                   name: Full name
-                  authsource: mailcow
+                  authsource: maimail
                   password: ""
                   password2: ""
                   quota: "3072"
@@ -3409,12 +3409,12 @@ paths:
                     authsource:
                       description: Specifies the authentication source for the mailbox.
                       type: string
-                      enum: [mailcow, ldap, keycloak, generic-oidc]
+                      enum: [maimail, ldap, keycloak, generic-oidc]
                     password2:
                       description: new mailbox password for confirmation
                       type: string
                     password:
-                      description: new mailbox password when using `mailcow` as the authentication source.
+                      description: new mailbox password when using `maimail` as the authentication source.
                       type: string
                     quota:
                       description: mailbox quota
@@ -3447,7 +3447,7 @@ paths:
                       - edit
                       - mailbox_custom_attribute
                       - mailboxes:
-                          - moo@mailcow.tld
+                          - moo@maimail.tld
                         attribute:
                           - role
                           - foo
@@ -3457,7 +3457,7 @@ paths:
                       - null
                     msg:
                       - mailbox_modified
-                      - moo@mailcow.tld
+                      - moo@maimail.tld
                     type: success
               schema:
                 properties:
@@ -3495,7 +3495,7 @@ paths:
                     - cow
                     - bar
                 items:
-                  - moo@mailcow.tld
+                  - moo@maimail.tld
               properties:
                 attr:
                   properties:
@@ -4040,13 +4040,13 @@ paths:
     get:
       parameters:
         - description: mailbox of entry you want to get
-          example: hello@mailcow.email
+          example: hello@maimail.email
           in: path
           name: mailbox
           required: true
           schema:
             enum:
-              - hello@mailcow.email
+              - hello@maimail.email
             type: string
         - description: e.g. api-key-string
           example: api-key-string
@@ -4066,9 +4066,9 @@ paths:
                   value:
                     - active: "1"
                       created: "2019-12-21 16:04:55"
-                      domain: mailcow.email
+                      domain: maimail.email
                       id: 2
-                      mailbox: hello@mailcow.email
+                      mailbox: hello@maimail.email
                       modified: null
                       name: emclient
           description: OK
@@ -4115,9 +4115,9 @@ paths:
                     - active: "1"
                       bcc_dest: bcc@awesomecow.tld
                       created: "2019-10-02 21:44:34"
-                      domain: mailcow.tld
+                      domain: maimail.tld
                       id: 3
-                      local_dest: "@mailcow.tld"
+                      local_dest: "@maimail.tld"
                       modified: null
                       type: sender
           description: OK
@@ -4182,11 +4182,11 @@ paths:
                     - active: "1"
                       created: "2019-10-02 10:29:41"
                       selected_domains:
-                        - mailcow.tld
+                        - maimail.tld
                       tfa_active: "0"
                       unselected_domains:
-                        - awesomemailcow.de
-                        - mailcowisgreat.de
+                        - awesomemaimail.de
+                        - maimailisgreat.de
                       username: testadmin
           description: OK
           headers: {}
@@ -4206,7 +4206,7 @@ paths:
           schema:
             enum:
               - all
-              - mailcow.tld
+              - maimail.tld
             type: string
         - description: comma seperated list of tags to filter by
           example: "tag1,tag2"
@@ -4329,15 +4329,15 @@ paths:
                   value:
                     - host: 5.1.76.202
                       keep_spam: "yes"
-                      source: hosted.mailcow.de
+                      source: hosted.maimail.de
                     - host: "2a00:f820:417::202"
                       keep_spam: "yes"
-                      source: hosted.mailcow.de
+                      source: hosted.maimail.de
           description: OK
           headers: {}
       tags:
         - Fordwarding Hosts
-      description: You can list all Forwarding Hosts in your mailcow.
+      description: You can list all Forwarding Hosts in your maimail.
       operationId: Get Forwarding Hosts
       summary: Get Forwarding Hosts
   "/api/v1/get/logs/acme/{count}":
@@ -4452,7 +4452,7 @@ paths:
                       ua: >-
                         Microsoft Office/16.0 (Windows NT 6.2; MAPICPL
                         16.0.11328; Pro)
-                      user: awesome@mailcow.de
+                      user: awesome@maimail.de
           description: OK
           headers: {}
       tags:
@@ -4613,18 +4613,18 @@ paths:
               examples:
                 response:
                   value:
-                    - from: awesome@mailcow.email
-                      header_from: '"Awesome" <awesome@mailcow.email>'
-                      header_subject: Mailcow is amazing
+                    - from: awesome@maimail.email
+                      header_from: '"Awesome" <awesome@maimail.email>'
+                      header_subject: MaiMaiL is amazing
                       ip: 172.22.1.248
                       message_id: 6a-5d892500-7-240abd80@90879116
                       qid: E3CF91500458
-                      rcpt: hello@mailcow.email
+                      rcpt: hello@maimail.email
                       rl_hash: RLsdz3tuabozgd4oacbdh8kc78
-                      rl_info: mailcow(RLsdz3tuabozgd4oacbdh8kc78)
-                      rl_name: mailcow
+                      rl_info: maimail(RLsdz3tuabozgd4oacbdh8kc78)
+                      rl_name: maimail
                       time: 1569269003
-                      user: awesome@mailcow.email
+                      user: awesome@maimail.email
           description: OK
           headers: {}
       tags:
@@ -4694,7 +4694,7 @@ paths:
                   value:
                     - message: >-
                         [109]:
-                        mailcowdockerized_watchdog-mailcow_1.mailcowdockerized_mailcow-network
+                        maimaildockerized_watchdog-maimail_1.maimaildockerized_maimail-network
                         "GET /SOGo.index/ HTTP/1.1" 200 2531/0 0.005 - - 0
                       priority: notice
                       program: sogod
@@ -4840,7 +4840,7 @@ paths:
                       queue_name: incoming
                       recipients:
                         - recipient@awesomecow.tld
-                      sender: sender@mailcow.tld
+                      sender: sender@maimail.tld
           description: OK
           headers: {}
       tags:
@@ -4884,7 +4884,7 @@ paths:
                       client_secret: 73fc668a88147e32a31ff80c
                       grant_types: null
                       id: 1
-                      redirect_uri: "https://mailcow.tld"
+                      redirect_uri: "https://maimail.tld"
                       scope: profile
                       user_id: null
           description: OK
@@ -4982,7 +4982,7 @@ paths:
                     rcpt: admin@domain.tld
                     score: 15.48
                     sender: bounces@send.domain.tld
-                    subject: mailcow is awesome
+                    subject: maimail is awesome
                     virus_flag: 0
           description: OK
           headers: {}
@@ -5027,8 +5027,8 @@ paths:
                       created: "2019-10-02 22:06:29"
                       id: 3
                       modified: null
-                      recipient_map_new: target@mailcow.tld
-                      recipient_map_old: recipient@mailcow.tld
+                      recipient_map_new: target@maimail.tld
+                      recipient_map_old: recipient@maimail.tld
           description: OK
           headers: {}
       tags:
@@ -5069,7 +5069,7 @@ paths:
                 response:
                   value:
                     - active: "1"
-                      hostname: "mailcow.tld:25"
+                      hostname: "maimail.tld:25"
                       id: 1
                       password: supersecurepassword
                       password_short: tes...
@@ -5095,11 +5095,11 @@ paths:
                   value:
                     - active: "1"
                       description: test
-                      domain: mailcow.tld
+                      domain: maimail.tld
                       kind: location
                       local_part: test
                       multiple_bookings: 0
-                      name: test@mailcow.tld
+                      name: test@maimail.tld
           description: OK
           headers: {}
       tags:
@@ -5133,10 +5133,10 @@ paths:
                 response:
                   value:
                     - frame: s
-                      mailbox: leon@mailcow.tld
+                      mailbox: leon@maimail.tld
                       value: "5"
                     - frame: s
-                      mailbox: lisa@mailcow.tld
+                      mailbox: lisa@maimail.tld
                       value: "3"
           description: OK
           headers: {}
@@ -5340,105 +5340,105 @@ paths:
               examples:
                 response:
                   value:
-                    acme-mailcow:
-                      container: acme-mailcow
-                      image: "mailcow/acme:1.63"
+                    acme-maimail:
+                      container: acme-maimail
+                      image: "maimail/acme:1.63"
                       started_at: "2019-12-22T21:00:08.270660275Z"
                       state: running
                       type: info
-                    clamd-mailcow:
-                      container: clamd-mailcow
-                      image: "mailcow/clamd:1.35"
+                    clamd-maimail:
+                      container: clamd-maimail
+                      image: "maimail/clamd:1.35"
                       started_at: "2019-12-22T21:00:01.622856172Z"
                       state: running
                       type: info
-                    dockerapi-mailcow:
-                      container: dockerapi-mailcow
-                      image: "mailcow/dockerapi:1.36"
+                    dockerapi-maimail:
+                      container: dockerapi-maimail
+                      image: "maimail/dockerapi:1.36"
                       started_at: "2019-12-22T20:59:59.984797808Z"
                       state: running
                       type: info
-                    dovecot-mailcow:
-                      container: dovecot-mailcow
-                      image: "mailcow/dovecot:1.104"
+                    dovecot-maimail:
+                      container: dovecot-maimail
+                      image: "maimail/dovecot:1.104"
                       started_at: "2019-12-22T21:00:08.988680259Z"
                       state: running
                       type: info
-                    ipv6nat-mailcow:
-                      container: ipv6nat-mailcow
+                    ipv6nat-maimail:
+                      container: ipv6nat-maimail
                       image: robbertkl/ipv6nat
                       started_at: "2019-12-22T21:06:37.273225445Z"
                       state: running
                       type: info
-                    memcached-mailcow:
-                      container: memcached-mailcow
+                    memcached-maimail:
+                      container: memcached-maimail
                       image: "memcached:alpine"
                       started_at: "2019-12-22T20:59:58.0907785Z"
                       state: running
                       type: info
-                    mysql-mailcow:
-                      container: mysql-mailcow
+                    mysql-maimail:
+                      container: mysql-maimail
                       image: "mariadb:10.3"
                       started_at: "2019-12-22T21:00:02.201937528Z"
                       state: running
                       type: info
-                    netfilter-mailcow:
-                      container: netfilter-mailcow
-                      image: "mailcow/netfilter:1.31"
+                    netfilter-maimail:
+                      container: netfilter-maimail
+                      image: "maimail/netfilter:1.31"
                       started_at: "2019-12-22T21:00:09.851559297Z"
                       state: running
                       type: info
-                    nginx-mailcow:
-                      container: nginx-mailcow
+                    nginx-maimail:
+                      container: nginx-maimail
                       image: "nginx:mainline-alpine"
                       started_at: "2019-12-22T21:00:12.9843038Z"
                       state: running
                       type: info
-                    olefy-mailcow:
-                      container: olefy-mailcow
-                      image: "mailcow/olefy:1.2"
+                    olefy-maimail:
+                      container: olefy-maimail
+                      image: "maimail/olefy:1.2"
                       started_at: "2019-12-22T20:59:59.676259274Z"
                       state: running
                       type: info
-                    php-fpm-mailcow:
-                      container: php-fpm-mailcow
-                      image: "mailcow/phpfpm:1.55"
+                    php-fpm-maimail:
+                      container: php-fpm-maimail
+                      image: "maimail/phpfpm:1.55"
                       started_at: "2019-12-22T21:00:00.955808957Z"
                       state: running
                       type: info
-                    postfix-mailcow:
-                      container: postfix-mailcow
-                      image: "mailcow/postfix:1.44"
+                    postfix-maimail:
+                      container: postfix-maimail
+                      image: "maimail/postfix:1.44"
                       started_at: "2019-12-22T21:00:07.186717617Z"
                       state: running
                       type: info
-                    redis-mailcow:
-                      container: redis-mailcow
+                    redis-maimail:
+                      container: redis-maimail
                       image: "redis:5-alpine"
                       started_at: "2019-12-22T20:59:56.827166834Z"
                       state: running
                       type: info
-                    rspamd-mailcow:
-                      container: rspamd-mailcow
-                      image: "mailcow/rspamd:1.56"
+                    rspamd-maimail:
+                      container: rspamd-maimail
+                      image: "maimail/rspamd:1.56"
                       started_at: "2019-12-22T21:00:12.456075355Z"
                       state: running
                       type: info
-                    sogo-mailcow:
-                      container: sogo-mailcow
-                      image: "mailcow/sogo:1.65"
+                    sogo-maimail:
+                      container: sogo-maimail
+                      image: "maimail/sogo:1.65"
                       started_at: "2019-12-22T20:59:58.382274592Z"
                       state: running
                       type: info
-                    unbound-mailcow:
-                      container: unbound-mailcow
-                      image: "mailcow/unbound:1.10"
+                    unbound-maimail:
+                      container: unbound-maimail
+                      image: "maimail/unbound:1.10"
                       started_at: "2019-12-22T20:59:58.760595825Z"
                       state: running
                       type: info
-                    watchdog-mailcow:
-                      container: watchdog-mailcow
-                      image: "mailcow/watchdog:1.65"
+                    watchdog-maimail:
+                      container: watchdog-maimail
+                      image: "maimail/watchdog:1.65"
                       started_at: "2019-12-22T20:59:56.028660382Z"
                       state: running
                       type: info
@@ -5580,7 +5580,7 @@ paths:
                     - parameters: ""
                       active: "1"
                       created: "2019-10-03 08:42:12"
-                      dest: mailcow.tld
+                      dest: maimail.tld
                       id: 1
                       modified: null
                       policy: encrypt
@@ -5760,7 +5760,7 @@ paths:
                 response:
                   value:
                     - type: "success"
-                      log: ["cors", "edit", {"allowed_origins": ["*", "mail.mailcow.tld"], "allowed_methods": ["POST", "GET", "DELETE", "PUT"]}]
+                      log: ["cors", "edit", {"allowed_origins": ["*", "mail.maimail.tld"], "allowed_methods": ["POST", "GET", "DELETE", "PUT"]}]
                       msg: "cors_headers_edited"
           description: OK
           headers: { }
@@ -5769,7 +5769,7 @@ paths:
       description: >-
         This endpoint allows you to manage Cross-Origin Resource Sharing (CORS) settings for the API.
         CORS is a security feature implemented by web browsers to prevent unauthorized cross-origin requests.
-        By editing the CORS settings, you can specify which domains and which methods are permitted to access the API resources from outside the mailcow domain.
+        By editing the CORS settings, you can specify which domains and which methods are permitted to access the API resources from outside the maimail domain.
       operationId: Edit Cross-Origin Resource Sharing (CORS) settings
       requestBody:
         content:
@@ -5777,7 +5777,7 @@ paths:
             schema:
               example:
                 attr:
-                  allowed_origins: ["*", "mail.mailcow.tld"]
+                  allowed_origins: ["*", "mail.maimail.tld"]
                   allowed_methods: ["POST", "GET", "DELETE", "PUT"]
               properties:
                 attr:
@@ -5842,12 +5842,12 @@ paths:
                         - "identity_provider"
                         - "edit"
                         - authsource: "keycloak"
-                          server_url: "https://auth.mailcow.tld"
-                          realm: "mailcow"
-                          client_id: "mailcow_client"
+                          server_url: "https://auth.maimail.tld"
+                          realm: "maimail"
+                          client_id: "maimail_client"
                           client_secret: "*"
-                          redirect_url: "https://mail.mailcow.tld"
-                          redirect_url_extra: ["https://extramail.mailcow.tld"]
+                          redirect_url: "https://mail.maimail.tld"
+                          redirect_url_extra: ["https://extramail.maimail.tld"]
                           version: "26.1.3"
                           default_template: "Default"
                           mappers:
@@ -5890,13 +5890,13 @@ paths:
                       description: The base URL of your Keycloak server. Required if `authsource` is keycloak.
                       type: string
                     realm:
-                      description: The Keycloak realm where the mailcow client is configured. Required if `authsource` is keycloak.
+                      description: The Keycloak realm where the maimail client is configured. Required if `authsource` is keycloak.
                       type: string
                     client_id:
-                      description: The Client ID assigned to mailcow Client in OIDC Provider. Required if `authsource` is keycloak or generic-oidc.
+                      description: The Client ID assigned to maimail Client in OIDC Provider. Required if `authsource` is keycloak or generic-oidc.
                       type: string
                     client_secret:
-                      description: The Client Secret assigned to mailcow Client in OIDC Provider. Required if `authsource` is keycloak or generic-oidc.
+                      description: The Client Secret assigned to maimail Client in OIDC Provider. Required if `authsource` is keycloak or generic-oidc.
                       type: string
                     redirect_url:
                       description: The redirect URL that OIDC Provider will use after authentication. Required if `authsource` is keycloak or generic-oidc.
@@ -5921,15 +5921,15 @@ paths:
                       type: boolean
                       default: false
                     mailpassword_flow:
-                      description: If enabled, mailcow will attempt to validate user credentials using the Keycloak Admin REST API instead of relying solely on the Authorization Code Flow.
+                      description: If enabled, maimail will attempt to validate user credentials using the Keycloak Admin REST API instead of relying solely on the Authorization Code Flow.
                       type: boolean
                       default: false
                     periodic_sync:
-                      description: If enabled, mailcow periodically performs a full sync of all users from Keycloak or LDAP.
+                      description: If enabled, maimail periodically performs a full sync of all users from Keycloak or LDAP.
                       type: boolean
                       default: false
                     import_users:
-                      description: If enabled, new users are automatically imported from Keycloak or LDAP into mailcow.
+                      description: If enabled, new users are automatically imported from Keycloak or LDAP into maimail.
                       type: boolean
                       default: false
                     sync_interval:
@@ -5981,7 +5981,7 @@ paths:
                     client_scopes:
                       description: Specifies the OIDC scopes requested during authentication.
                       type: string
-                      default: "openid profile email mailcow_template"
+                      default: "openid profile email maimail_template"
             examples:
               keycloak:
                 value:
@@ -5989,12 +5989,12 @@ paths:
                     - "identity-provider"
                   attr:
                     authsource: "keycloak"
-                    server_url: "https://auth.mailcow.tld"
-                    realm: "mailcow"
-                    client_id: "mailcow_client"
+                    server_url: "https://auth.maimail.tld"
+                    realm: "maimail"
+                    client_id: "maimail_client"
                     client_secret: "Xy7GdPqvJ9m3R8sT2LkVZ5W1oNbCaYQf"
-                    redirect_url: "https://mail.mailcow.tld"
-                    redirect_url_extra: ["https://extramail.mailcow.tld"]
+                    redirect_url: "https://mail.maimail.tld"
+                    redirect_url_extra: ["https://extramail.maimail.tld"]
                     version: "26.1.3"
                     default_template: "Default"
                     mappers: ["small_mbox", "medium_mbox"]
@@ -6015,11 +6015,11 @@ paths:
                     use_ssl: false
                     use_tls: false
                     ignore_ssl_error: false
-                    basedn: "DC=mailcow,DC=local"
+                    basedn: "DC=maimail,DC=local"
                     username_field: "mail"
-                    filter: "(memberOf:1.2.840.113556.1.4.1941:=DC=mailcow,DC=local)"
+                    filter: "(memberOf:1.2.840.113556.1.4.1941:=DC=maimail,DC=local)"
                     attribute_field: "othermailbox"
-                    binddn: "CN=LDAP Read Only,CN=Users,DC=mailcow,DC=local"
+                    binddn: "CN=LDAP Read Only,CN=Users,DC=maimail,DC=local"
                     bindpass: "moohoo"
                     default_template: "Default"
                     mappers: ["small_mbox", "medium_mbox"]
@@ -6033,14 +6033,14 @@ paths:
                     - "identity-provider"
                   attr:
                     authsource: "generic-oidc"
-                    authorize_url: "https://auth.mailcow.tld/application/o/authorize/"
-                    token_url: "https://auth.mailcow.tld/application/o/token/"
-                    userinfo_url: "https://auth.mailcow.tld/application/o/userinfo/"
-                    client_id: "mailcow_client"
+                    authorize_url: "https://auth.maimail.tld/application/o/authorize/"
+                    token_url: "https://auth.maimail.tld/application/o/token/"
+                    userinfo_url: "https://auth.maimail.tld/application/o/userinfo/"
+                    client_id: "maimail_client"
                     client_secret: "Xy7GdPqvJ9m3R8sT2LkVZ5W1oNbCaYQf"
-                    redirect_url: "https://mail.mailcow.tld"
-                    redirect_url_extra: ["https://extramail.mailcow.tld"]
-                    client_scopes: "openid profile email mailcow_template"
+                    redirect_url: "https://mail.maimail.tld"
+                    redirect_url_extra: ["https://extramail.maimail.tld"]
+                    client_scopes: "openid profile email maimail_template"
                     default_template: "Default"
                     mappers: ["small_mbox", "medium_mbox"]
                     templates: ["small", "medium"]
@@ -6061,7 +6061,7 @@ tags:
   - name: Fordwarding Hosts
     description: Forwarding Hosts enable you to send mail using a relay
   - name: Logs
-    description: Get all mailcow system logs
+    description: Get all maimail system logs
   - name: Queue Manager
     description: Manage the postfix mail queue
   - name: Quarantine
@@ -6079,7 +6079,7 @@ tags:
   - name: Outgoing TLS Policy Map Overrides
     description: Force global TLS policys
   - name: oAuth Clients
-    description: Use mailcow as a oAuth server
+    description: Use maimail as a oAuth server
   - name: Routing
     description: Define your own email routes
   - name: Resources

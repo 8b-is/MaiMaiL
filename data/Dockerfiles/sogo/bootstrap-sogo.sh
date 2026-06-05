@@ -7,7 +7,7 @@ while ! mariadb-admin status --ssl=false --socket=/var/run/mysqld/mysqld.sock -u
 done
 
 # Wait until port becomes free and send sig
-until ! nc -z sogo-mailcow 20000;
+until ! nc -z sogo-maimail 20000;
 do
   killall -TERM sogod
   sleep 3
@@ -144,8 +144,8 @@ chmod 600 /var/lib/sogo/GNUstep/Defaults/sogod.plist
 #  fi
 #fi
 
-if patch -R -sfN --dry-run /usr/lib/GNUstep/SOGo/Templates/UIxTopnavToolbar.wox < /navMailcowBtns.diff > /dev/null; then
-  patch -R /usr/lib/GNUstep/SOGo/Templates/UIxTopnavToolbar.wox < /navMailcowBtns.diff;
+if patch -R -sfN --dry-run /usr/lib/GNUstep/SOGo/Templates/UIxTopnavToolbar.wox < /navMaiMaiLBtns.diff > /dev/null; then
+  patch -R /usr/lib/GNUstep/SOGo/Templates/UIxTopnavToolbar.wox < /navMaiMaiLBtns.diff;
 fi
 
 # Rename custom logo, if any

@@ -194,7 +194,7 @@ EOF
 
 # 3) Main wrapper for generate_config.sh and update.sh
 configure_ipv6() {
-  # detect manual override if mailcow.conf is present
+  # detect manual override if maimail.conf is present
   if [[ -n "$MAILCOW_CONF" && -f "$MAILCOW_CONF" ]] && grep -q '^ENABLE_IPV6=' "$MAILCOW_CONF"; then
     MANUAL_SETTING=$(grep '^ENABLE_IPV6=' "$MAILCOW_CONF" | cut -d= -f2)
   elif [[ -z "$MAILCOW_CONF" ]] && [[ -n "${ENABLE_IPV6:-}" ]]; then

@@ -43,18 +43,18 @@ elseif (isset($_GET['login'])) {
   $is_dual = (!empty($_SESSION["dual-login"]["username"])) ? true : false;
   // check permissions (if dual_login is active, deny sso when acl is not given)
   $login = html_entity_decode(rawurldecode($_GET["login"]));
-  if (isset($_SESSION['mailcow_cc_role']) &&
-    (($_SESSION['acl']['login_as'] == "1" && $ALLOW_ADMIN_EMAIL_LOGIN !== 0) || ($is_dual === false && $login == $_SESSION['mailcow_cc_username']))) {
+  if (isset($_SESSION['maimail_cc_role']) &&
+    (($_SESSION['acl']['login_as'] == "1" && $ALLOW_ADMIN_EMAIL_LOGIN !== 0) || ($is_dual === false && $login == $_SESSION['maimail_cc_username']))) {
     if (filter_var($login, FILTER_VALIDATE_EMAIL)) {
       if (user_get_alias_details($login) !== false) {
         // register username in session
         $_SESSION[$session_var_user_allowed][] = $login;
         // set dual login
-        if ($_SESSION['acl']['login_as'] == "1" && $ALLOW_ADMIN_EMAIL_LOGIN !== 0 && $is_dual === false && $_SESSION['mailcow_cc_role'] != "user"){
-          $_SESSION["dual-login"]["username"] = $_SESSION['mailcow_cc_username'];
-          $_SESSION["dual-login"]["role"]     = $_SESSION['mailcow_cc_role'];
-          $_SESSION['mailcow_cc_username']    = $login;
-          $_SESSION['mailcow_cc_role']        = "user";
+        if ($_SESSION['acl']['login_as'] == "1" && $ALLOW_ADMIN_EMAIL_LOGIN !== 0 && $is_dual === false && $_SESSION['maimail_cc_role'] != "user"){
+          $_SESSION["dual-login"]["username"] = $_SESSION['maimail_cc_username'];
+          $_SESSION["dual-login"]["role"]     = $_SESSION['maimail_cc_role'];
+          $_SESSION['maimail_cc_username']    = $login;
+          $_SESSION['maimail_cc_role']        = "user";
         }
         // update sasl logs
         $service = ($app_passwd_data['eas'] === true) ? 'EAS' : 'DAV';
@@ -82,7 +82,7 @@ elseif (isset($_SERVER['HTTP_X_ORIGINAL_URI']) && strcasecmp(substr($_SERVER['HT
   require_once $_SERVER['DOCUMENT_ROOT'] . '/inc/sessions.inc.php';
 
   $email_list = array(
-      ($_SESSION['mailcow_cc_username'] ?? ''),     // Current user
+      ($_SESSION['maimail_cc_username'] ?? ''),     // Current user
       ($_SESSION["dual-login"]["username"] ?? ''),  // Dual login user
   );
   foreach($email_list as $email) {

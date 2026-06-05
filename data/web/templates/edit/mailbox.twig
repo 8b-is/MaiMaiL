@@ -32,7 +32,7 @@
                       <select
                         data-style="btn btn-secondary"
                         name="authsource" class="full-width-select form-control" required>
-                          <option value="mailcow" {% if result.authsource == "mailcow" %}selected{% endif %}>mailcow</option>
+                          <option value="maimail" {% if result.authsource == "maimail" %}selected{% endif %}>maimail</option>
                           {% if iam_settings.authsource == 'keycloak' %}
                           <option value="keycloak" {% if result.authsource == "keycloak" %}selected{% endif %}>Keycloak</option>
                           {% endif %}
@@ -240,7 +240,7 @@
                       </div>
                     </div>
                   </div>
-                  {% if not result.authsource or result.authsource == 'mailcow' %}
+                  {% if not result.authsource or result.authsource == 'maimail' %}
                   <div class="row">
                     <label class="control-label col-sm-2" for="password">{{ lang.edit.password }} (<a href="#" class="generate_password">{{ lang.edit.generate }}</a>)</label>
                     <div class="col-sm-10">
@@ -571,7 +571,7 @@
                     </div>
                     <div class="row mb-2">
                       <div class="col-sm-12 offset-md-2 col-md-10 col-xl-8">
-                        <button class="btn btn-xs-lg d-block d-sm-inline btn-secondary" data-action="edit_selected" data-id="mboxrename" data-item="{{ mailbox }}" data-api-url='edit/rename-mbox' data-api-attr='{}' data-api-reload-location="/{{mailcow_cc_role}}/mailbox" href="#">{{ lang.edit.save }}</button>
+                        <button class="btn btn-xs-lg d-block d-sm-inline btn-secondary" data-action="edit_selected" data-id="mboxrename" data-item="{{ mailbox }}" data-api-url='edit/rename-mbox' data-api-attr='{}' data-api-reload-location="/{{maimail_cc_role}}/mailbox" href="#">{{ lang.edit.save }}</button>
                       </div>
                     </div>
                   </form>

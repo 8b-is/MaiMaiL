@@ -3,17 +3,17 @@
 ############## Begin Function Section ##############
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-MAILCOW_CONF="${SCRIPT_DIR}/mailcow.conf"
+MAILCOW_CONF="${SCRIPT_DIR}/maimail.conf"
 
-# Ensure the script is run from the directory that contains mailcow.conf
-if [ ! -f "${PWD}/mailcow.conf" ]; then
-  if [ -f "${SCRIPT_DIR}/mailcow.conf" ]; then
-    echo -e "\e[33mPlease run this script directly from the mailcow installation directory:\e[0m"
+# Ensure the script is run from the directory that contains maimail.conf
+if [ ! -f "${PWD}/maimail.conf" ]; then
+  if [ -f "${SCRIPT_DIR}/maimail.conf" ]; then
+    echo -e "\e[33mPlease run this script directly from the maimail installation directory:\e[0m"
     echo -e "  \e[36mcd ${SCRIPT_DIR} && ./update.sh\e[0m"
     exit 1
   else
-    echo -e "\e[31mmailcow.conf not found in current directory or script directory (\e[36m${SCRIPT_DIR}\e[31m).\e[0m"
-    echo -e "\e[33mRun this script directly from your mailcow installation directory.\e[0m"
+    echo -e "\e[31mmaimail.conf not found in current directory or script directory (\e[36m${SCRIPT_DIR}\e[31m).\e[0m"
+    echo -e "\e[33mRun this script directly from your maimail installation directory.\e[0m"
     exit 1
   fi
 fi
@@ -73,13 +73,13 @@ while (($#)); do
   case "${1}" in
     --check|-c)
       echo "Checking remote code for updates..."
-      LATEST_REV=$(git ls-remote --exit-code --refs --quiet https://github.com/mailcow/mailcow-dockerized "${BRANCH}" | cut -f1)
+      LATEST_REV=$(git ls-remote --exit-code --refs --quiet https://github.com/maimail/maimail-dockerized "${BRANCH}" | cut -f1)
       if [ "$?" -ne 0 ]; then
         echo "A problem occurred while trying to fetch the latest revision from github."
         exit 99
       fi
       if [[ -z $(git log HEAD --pretty=format:"%H" | grep "${LATEST_REV}") ]]; then
-        echo -e "Updated code is available.\nThe changes can be found here: https://github.com/mailcow/mailcow-dockerized/commits/master"
+        echo -e "Updated code is available.\nThe changes can be found here: https://github.com/maimail/maimail-dockerized/commits/master"
         git log --date=short --pretty=format:"%ad - %s" "$(git rev-parse --short HEAD)"..origin/master
         exit 0
       else
@@ -95,7 +95,7 @@ while (($#)); do
         exit 99
       fi
       if [[ -z $(git log HEAD --pretty=format:"%H" | grep "${LATEST_TAG_REV}") ]]; then
-        echo -e "New tag is available.\nThe changes can be found here: https://github.com/mailcow/mailcow-dockerized/releases/latest"
+        echo -e "New tag is available.\nThe changes can be found here: https://github.com/maimail/maimail-dockerized/releases/latest"
         exit 0
       else
         echo "No updates available."
@@ -146,14 +146,14 @@ while (($#)); do
 
   -c|--check           -   Check for updates and exit (exit codes => 0: update available, 3: no updates)
   --check-tags         -   Check for newer tags and exit (exit codes => 0: newer tag available, 3: no newer tag)
-  --ours               -   Use merge strategy option "ours" to solve conflicts in favor of non-mailcow code (local changes over remote changes), not recommended!
+  --ours               -   Use merge strategy option "ours" to solve conflicts in favor of non-maimail code (local changes over remote changes), not recommended!
   --gc                 -   Run garbage collector to delete old image tags
-  --nightly            -   Switch your mailcow updates to the unstable (nightly) branch. FOR TESTING PURPOSES ONLY!!!!
+  --nightly            -   Switch your maimail updates to the unstable (nightly) branch. FOR TESTING PURPOSES ONLY!!!!
   --prefetch           -   Only prefetch new images and exit (useful to prepare updates)
-  --skip-start         -   Do not start mailcow after update
-  --skip-ping-check    -   Skip ICMP Check to public DNS resolvers (Use it only if you'\''ve blocked any ICMP Connections to your mailcow machine)
-  --stable             -   Switch your mailcow updates to the stable (master) branch. Default unless you changed it with --nightly or --legacy.
-  --legacy             -   Switch your mailcow updates to the legacy branch. The legacy branch will only receive security updates until February 2026.
+  --skip-start         -   Do not start maimail after update
+  --skip-ping-check    -   Skip ICMP Check to public DNS resolvers (Use it only if you'\''ve blocked any ICMP Connections to your maimail machine)
+  --stable             -   Switch your maimail updates to the stable (master) branch. Default unless you changed it with --nightly or --legacy.
+  --legacy             -   Switch your maimail updates to the legacy branch. The legacy branch will only receive security updates until February 2026.
   -f|--force           -   Force update, do not ask questions
   -d|--dev             -   Enables Developer Mode (No Checkout of update.sh for tests)
 '
@@ -162,10 +162,10 @@ while (($#)); do
   shift
 done
 
-[[ ! -f mailcow.conf ]] && { echo -e "\e[31mmailcow.conf is missing! Is mailcow installed?\e[0m"; exit 1;}
+[[ ! -f maimail.conf ]] && { echo -e "\e[31mmaimail.conf is missing! Is maimail installed?\e[0m"; exit 1;}
 
-chmod 600 mailcow.conf
-source mailcow.conf
+chmod 600 maimail.conf
+source maimail.conf
 
 get_compose_type
 
@@ -180,7 +180,7 @@ elif [[ "${MAILCOW_HOSTNAME: -1}" == "." ]]; then
   exit 1
 elif [ ${#DOTS} -eq 1 ]; then
   echo -e "\e[33mMAILCOW_HOSTNAME (${MAILCOW_HOSTNAME}) does not contain a Subdomain. This is not fully tested and may cause issues.\e[0m"
-  echo "Find more information about why this message exists here: https://github.com/mailcow/mailcow-dockerized/issues/1572"
+  echo "Find more information about why this message exists here: https://github.com/maimail/maimail-dockerized/issues/1572"
   read -r -p "Do you want to proceed anyway? [y/N] " response
   if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]; then
     echo "OK. Proceeding."
@@ -206,7 +206,7 @@ else
 fi
 
 if ! [ "$NEW_BRANCH" ]; then
-  echo -e "\e[33mDetecting which build your mailcow runs on...\e[0m"
+  echo -e "\e[33mDetecting which build your maimail runs on...\e[0m"
   sleep 1
   if [ "${BRANCH}" == "master" ]; then
     echo -e "\e[32mYou are receiving stable updates (master).\e[0m"
@@ -225,7 +225,7 @@ if ! [ "$NEW_BRANCH" ]; then
   else
     echo -e "\e[33mYou are receiving updates from an unsupported branch.\e[0m"
     sleep 1
-    echo -e "\e[33mThe mailcow stack might still work but it is recommended to switch to the master branch (stable builds).\e[0m"
+    echo -e "\e[33mThe maimail stack might still work but it is recommended to switch to the master branch (stable builds).\e[0m"
     echo -e "\e[33mTo change that run the update.sh Script one time with the --stable parameter to switch to stable builds.\e[0m"
   fi
 elif [ "$FORCE" ]; then
@@ -234,12 +234,12 @@ elif [ "$FORCE" ]; then
   echo -e "\e[31mPlease rerun the update.sh Script without the --force/-f parameter.\e[0m"
   sleep 1
 elif [ "$NEW_BRANCH" == "master" ] && [ "$CURRENT_BRANCH" != "master" ]; then
-  echo -e "\e[33mYou are about to switch your mailcow updates to the stable (master) branch.\e[0m"
+  echo -e "\e[33mYou are about to switch your maimail updates to the stable (master) branch.\e[0m"
   sleep 1
   echo -e "\e[33mBefore you do: Please take a backup of all components to ensure that no data is lost...\e[0m"
   sleep 1
   echo -e "\e[31mWARNING: Please see on GitHub or ask in the community if a switch to master is stable or not.
-  In some rear cases an update back to master can destroy your mailcow configuration such as database upgrade, etc.
+  In some rear cases an update back to master can destroy your maimail configuration such as database upgrade, etc.
   Normally an upgrade back to master should be safe during each full release.
   Check GitHub for Database changes and update only if there similar to the full release!\e[0m"
   read -r -p "Are you sure you that want to continue upgrading to the stable (master) branch? [y/N] " response
@@ -262,7 +262,7 @@ elif [ "$NEW_BRANCH" == "master" ] && [ "$CURRENT_BRANCH" != "master" ]; then
   git checkout -f "${BRANCH}"
 
 elif [ "$NEW_BRANCH" == "nightly" ] && [ "$CURRENT_BRANCH" != "nightly" ]; then
-  echo -e "\e[33mYou are about to switch your mailcow Updates to the unstable (nightly) branch.\e[0m"
+  echo -e "\e[33mYou are about to switch your maimail Updates to the unstable (nightly) branch.\e[0m"
   sleep 1
   echo -e "\e[33mBefore you do: Please take a backup of all components to ensure that no Data is lost...\e[0m"
   sleep 1
@@ -285,7 +285,7 @@ elif [ "$NEW_BRANCH" == "nightly" ] && [ "$CURRENT_BRANCH" != "nightly" ]; then
   git fetch origin
   git checkout -f "${BRANCH}"
 elif [ "$NEW_BRANCH" == "legacy" ] && [ "$CURRENT_BRANCH" != "legacy" ]; then
-  echo -e "\e[33mYou are about to switch your mailcow Updates to the legacy branch.\e[0m"
+  echo -e "\e[33mYou are about to switch your maimail Updates to the legacy branch.\e[0m"
   sleep 1
   echo -e "\e[33mBefore you do: Please take a backup of all components to ensure that no Data is lost...\e[0m"
   sleep 1
@@ -345,7 +345,7 @@ if [ ! "$DEV" ]; then
 fi
 
 if [ ! "$FORCE" ]; then
-  read -r -p "Are you sure you want to update mailcow: dockerized? All containers will be stopped. [y/N] " response
+  read -r -p "Are you sure you want to update maimail: dockerized? All containers will be stopped. [y/N] " response
   if [[ ! "${response}" =~ ^([yY][eE][sS]|[yY])+$ ]]; then
     echo "OK, exiting."
     exit 0
@@ -380,7 +380,7 @@ fi
 echo -e "\e[32mPrefetching images...\e[0m"
 prefetch_images
 
-echo -e "\e[32mStopping mailcow...\e[0m"
+echo -e "\e[32mStopping maimail...\e[0m"
 sleep 2
 MAILCOW_CONTAINERS=($($COMPOSE_COMMAND ps -q))
 $COMPOSE_COMMAND down
@@ -397,10 +397,10 @@ migrate_config_options
 adapt_new_options
 
 if [ ! "$DEV" ]; then
-  DEFAULT_REPO="https://github.com/mailcow/mailcow-dockerized"
+  DEFAULT_REPO="https://github.com/maimail/maimail-dockerized"
   CURRENT_REPO=$(git config --get remote.origin.url)
   if [ "$CURRENT_REPO" != "$DEFAULT_REPO" ]; then
-    echo "The Repository currently used is not the default mailcow Repository."
+    echo "The Repository currently used is not the default maimail Repository."
     echo "Currently Repository: $CURRENT_REPO"
     echo "Default Repository:   $DEFAULT_REPO"
     if [ ! "$FORCE" ]; then
@@ -430,7 +430,7 @@ if [ ! "$DEV" ]; then
   # Need to use a variable to not pass return codes of if checks
   MERGE_RETURN=$?
   if [[ ${MERGE_RETURN} == 128 ]]; then
-    echo -e "\e[31m\nOh no, what happened?\n=> You most likely added files to your local mailcow instance that were now added to the official mailcow repository. Please move them to another location before updating mailcow.\e[0m"
+    echo -e "\e[31m\nOh no, what happened?\n=> You most likely added files to your local maimail instance that were now added to the official maimail repository. Please move them to another location before updating maimail.\e[0m"
     exit 1
   elif [[ ${MERGE_RETURN} == 1 ]]; then
     echo -e "\e[93mPotential conflict, trying to fix...\e[0m"
@@ -458,12 +458,12 @@ $COMPOSE_COMMAND pull
 cp -n -d data/assets/ssl-example/*.pem data/assets/ssl/
 
 echo -e "Checking IPv6 settings... "
-if grep -q 'SYSCTL_IPV6_DISABLED=1' mailcow.conf; then
+if grep -q 'SYSCTL_IPV6_DISABLED=1' maimail.conf; then
   echo
   echo '!! IMPORTANT !!'
   echo
   echo 'SYSCTL_IPV6_DISABLED was removed due to complications. IPv6 can be disabled by editing "docker-compose.yml" and setting "enable_ipv6: true" to "enable_ipv6: false".'
-  echo "This setting will only be active after a complete shutdown of mailcow by running $COMPOSE_COMMAND down followed by $COMPOSE_COMMAND up -d."
+  echo "This setting will only be active after a complete shutdown of maimail by running $COMPOSE_COMMAND down followed by $COMPOSE_COMMAND up -d."
   echo
   echo '!! IMPORTANT !!'
   echo
@@ -471,7 +471,7 @@ if grep -q 'SYSCTL_IPV6_DISABLED=1' mailcow.conf; then
 fi
 
 # Checking for old project name bug
-sed -i --follow-symlinks 's#COMPOSEPROJECT_NAME#COMPOSE_PROJECT_NAME#g' mailcow.conf
+sed -i --follow-symlinks 's#COMPOSEPROJECT_NAME#COMPOSE_PROJECT_NAME#g' maimail.conf
 
 # Fix Rspamd maps
 if [ -f data/conf/rspamd/custom/global_from_blacklist.map ]; then
@@ -485,44 +485,44 @@ fi
 if [ -f "data/conf/rspamd/local.d/metrics.conf" ]; then
   if [ ! -z "$(git diff --name-only origin/master data/conf/rspamd/local.d/metrics.conf)" ]; then
     echo -e "\e[33mWARNING\e[0m - Please migrate your customizations of data/conf/rspamd/local.d/metrics.conf to actions.conf and groups.conf after this update."
-    echo "The deprecated configuration file metrics.conf will be moved to metrics.conf_deprecated after updating mailcow."
+    echo "The deprecated configuration file metrics.conf will be moved to metrics.conf_deprecated after updating maimail."
   fi
   mv data/conf/rspamd/local.d/metrics.conf data/conf/rspamd/local.d/metrics.conf_deprecated
 fi
 
 # Set app_info.inc.php
 if [ ${BRANCH} == "master" ]; then
-  mailcow_git_version=$(git describe --tags $(git rev-list --tags --max-count=1))
+  maimail_git_version=$(git describe --tags $(git rev-list --tags --max-count=1))
 elif [ ${BRANCH} == "nightly" ]; then
-  mailcow_git_version=$(git rev-parse --short $(git rev-parse @{upstream}))
-  mailcow_last_git_version=""
+  maimail_git_version=$(git rev-parse --short $(git rev-parse @{upstream}))
+  maimail_last_git_version=""
 else
-  mailcow_git_version=$(git rev-parse --short HEAD)
-  mailcow_last_git_version=""
+  maimail_git_version=$(git rev-parse --short HEAD)
+  maimail_last_git_version=""
 fi
 
-mailcow_git_commit=$(git rev-parse "origin/${BRANCH}")
-mailcow_git_commit_date=$(git log -1 --format=%ci @{upstream} )
+maimail_git_commit=$(git rev-parse "origin/${BRANCH}")
+maimail_git_commit_date=$(git log -1 --format=%ci @{upstream} )
 
 if [ $? -eq 0 ]; then
   echo '<?php' > data/web/inc/app_info.inc.php
-  echo '  $MAILCOW_GIT_VERSION="'$mailcow_git_version'";' >> data/web/inc/app_info.inc.php
+  echo '  $MAILCOW_GIT_VERSION="'$maimail_git_version'";' >> data/web/inc/app_info.inc.php
   echo '  $MAILCOW_LAST_GIT_VERSION="";' >> data/web/inc/app_info.inc.php
-  echo '  $MAILCOW_GIT_OWNER="mailcow";' >> data/web/inc/app_info.inc.php
-  echo '  $MAILCOW_GIT_REPO="mailcow-dockerized";' >> data/web/inc/app_info.inc.php
-  echo '  $MAILCOW_GIT_URL="https://github.com/mailcow/mailcow-dockerized";' >> data/web/inc/app_info.inc.php
-  echo '  $MAILCOW_GIT_COMMIT="'$mailcow_git_commit'";' >> data/web/inc/app_info.inc.php
-  echo '  $MAILCOW_GIT_COMMIT_DATE="'$mailcow_git_commit_date'";' >> data/web/inc/app_info.inc.php
+  echo '  $MAILCOW_GIT_OWNER="maimail";' >> data/web/inc/app_info.inc.php
+  echo '  $MAILCOW_GIT_REPO="maimail-dockerized";' >> data/web/inc/app_info.inc.php
+  echo '  $MAILCOW_GIT_URL="https://github.com/maimail/maimail-dockerized";' >> data/web/inc/app_info.inc.php
+  echo '  $MAILCOW_GIT_COMMIT="'$maimail_git_commit'";' >> data/web/inc/app_info.inc.php
+  echo '  $MAILCOW_GIT_COMMIT_DATE="'$maimail_git_commit_date'";' >> data/web/inc/app_info.inc.php
   echo '  $MAILCOW_BRANCH="'$BRANCH'";' >> data/web/inc/app_info.inc.php
   echo '  $MAILCOW_UPDATEDAT='$(date +%s)';' >> data/web/inc/app_info.inc.php
   echo '?>' >> data/web/inc/app_info.inc.php
 else
   echo '<?php' > data/web/inc/app_info.inc.php
-  echo '  $MAILCOW_GIT_VERSION="'$mailcow_git_version'";' >> data/web/inc/app_info.inc.php
+  echo '  $MAILCOW_GIT_VERSION="'$maimail_git_version'";' >> data/web/inc/app_info.inc.php
   echo '  $MAILCOW_LAST_GIT_VERSION="";' >> data/web/inc/app_info.inc.php
-  echo '  $MAILCOW_GIT_OWNER="mailcow";' >> data/web/inc/app_info.inc.php
-  echo '  $MAILCOW_GIT_REPO="mailcow-dockerized";' >> data/web/inc/app_info.inc.php
-  echo '  $MAILCOW_GIT_URL="https://github.com/mailcow/mailcow-dockerized";' >> data/web/inc/app_info.inc.php
+  echo '  $MAILCOW_GIT_OWNER="maimail";' >> data/web/inc/app_info.inc.php
+  echo '  $MAILCOW_GIT_REPO="maimail-dockerized";' >> data/web/inc/app_info.inc.php
+  echo '  $MAILCOW_GIT_URL="https://github.com/maimail/maimail-dockerized";' >> data/web/inc/app_info.inc.php
   echo '  $MAILCOW_GIT_COMMIT="";' >> data/web/inc/app_info.inc.php
   echo '  $MAILCOW_GIT_COMMIT_DATE="";' >> data/web/inc/app_info.inc.php
   echo '  $MAILCOW_BRANCH="'$BRANCH'";' >> data/web/inc/app_info.inc.php
@@ -532,9 +532,9 @@ else
 fi
 
 if [[ ${SKIP_START} == "y" ]]; then
-  echo -e "\e[33mNot starting mailcow, please run \"$COMPOSE_COMMAND up -d --remove-orphans\" to start mailcow.\e[0m"
+  echo -e "\e[33mNot starting maimail, please run \"$COMPOSE_COMMAND up -d --remove-orphans\" to start maimail.\e[0m"
 else
-  echo -e "\e[32mStarting mailcow...\e[0m"
+  echo -e "\e[32mStarting maimail...\e[0m"
   sleep 2
   $COMPOSE_COMMAND up -d --remove-orphans
 fi
@@ -547,7 +547,7 @@ if [ -f "${SCRIPT_DIR}/post_update_hook.sh" ]; then
   bash "${SCRIPT_DIR}/post_update_hook.sh"
 fi
 
-# echo "In case you encounter any problem, hard-reset to a state before updating mailcow:"
+# echo "In case you encounter any problem, hard-reset to a state before updating maimail:"
 # echo
 # git reflog --color=always | grep "Before update on "
 # echo

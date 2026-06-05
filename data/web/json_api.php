@@ -102,7 +102,7 @@ if (isset($_GET['query'])) {
 
   switch ($action) {
     case "add":
-      if ($_SESSION['mailcow_cc_api_access'] == 'ro' || isset($_SESSION['pending_mailcow_cc_username'])) {
+      if ($_SESSION['maimail_cc_api_access'] == 'ro' || isset($_SESSION['pending_maimail_cc_username'])) {
         http_response_code(403);
         echo json_encode(array(
             'type' => 'error',
@@ -150,7 +150,7 @@ if (isset($_GET['query'])) {
         // fido2-registration via POST
         case "fido2-registration":
           header('Content-Type: application/json');
-          if (isset($_SESSION["mailcow_cc_role"])) {
+          if (isset($_SESSION["maimail_cc_role"])) {
             $post = trim(file_get_contents('php://input'));
             if ($post) {
               $post = json_decode($post);
@@ -180,7 +180,7 @@ if (isset($_GET['query'])) {
           }
         break;
         case "webauthn-tfa-registration":
-            if (isset($_SESSION["mailcow_cc_role"])) {
+            if (isset($_SESSION["maimail_cc_role"])) {
               // parse post data
               $post = trim(file_get_contents('php://input'));
               if ($post) $post = json_decode($post);
@@ -371,10 +371,10 @@ if (isset($_GET['query'])) {
         // fido2
         case "fido2-registration":
           header('Content-Type: application/json');
-          if (isset($_SESSION["mailcow_cc_role"])) {
+          if (isset($_SESSION["maimail_cc_role"])) {
               // Exclude existing CredentialIds, if any
               $excludeCredentialIds = fido2(array("action" => "get_user_cids"));
-              $createArgs = $WebAuthn->getCreateArgs($_SESSION["mailcow_cc_username"], $_SESSION["mailcow_cc_username"], $_SESSION["mailcow_cc_username"], 30, true, $GLOBALS['FIDO2_UV_FLAG_REGISTER'], null, $excludeCredentialIds);
+              $createArgs = $WebAuthn->getCreateArgs($_SESSION["maimail_cc_username"], $_SESSION["maimail_cc_username"], $_SESSION["maimail_cc_username"], 30, true, $GLOBALS['FIDO2_UV_FLAG_REGISTER'], null, $excludeCredentialIds);
               print(json_encode($createArgs));
               $_SESSION['challenge'] = $WebAuthn->getChallenge();
               return;
@@ -399,11 +399,11 @@ if (isset($_GET['query'])) {
         break;
         // webauthn two factor authentication
         case "webauthn-tfa-registration":
-          if (isset($_SESSION["mailcow_cc_role"])) {
+          if (isset($_SESSION["maimail_cc_role"])) {
               // Exclude existing CredentialIds, if any
               $stmt = $pdo->prepare("SELECT `keyHandle` FROM `tfa` WHERE username = :username AND authmech = :authmech");
               $stmt->execute(array(
-                ':username' => $_SESSION['mailcow_cc_username'],
+                ':username' => $_SESSION['maimail_cc_username'],
                 ':authmech' => 'webauthn'
               ));
               $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -414,7 +414,7 @@ if (isset($_GET['query'])) {
               // cross-platform: true, if type internal is not allowed
               //        false, if only internal is allowed
               //        null, if internal and cross-platform is allowed
-              $createArgs = $WebAuthn->getCreateArgs($_SESSION["mailcow_cc_username"], $_SESSION["mailcow_cc_username"], $_SESSION["mailcow_cc_username"], 30, false, $GLOBALS['WEBAUTHN_UV_FLAG_REGISTER'], null, $excludeCredentialIds);
+              $createArgs = $WebAuthn->getCreateArgs($_SESSION["maimail_cc_username"], $_SESSION["maimail_cc_username"], $_SESSION["maimail_cc_username"], 30, false, $GLOBALS['WEBAUTHN_UV_FLAG_REGISTER'], null, $excludeCredentialIds);
 
               print(json_encode($createArgs));
               $_SESSION['challenge'] = $WebAuthn->getChallenge();
@@ -428,7 +428,7 @@ if (isset($_GET['query'])) {
         case "webauthn-tfa-get-args":
           $stmt = $pdo->prepare("SELECT `keyHandle` FROM `tfa` WHERE username = :username AND authmech = :authmech");
           $stmt->execute(array(
-            ':username' => $_SESSION['pending_mailcow_cc_username'],
+            ':username' => $_SESSION['pending_maimail_cc_username'],
             ':authmech' => 'webauthn'
           ));
           $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -450,7 +450,7 @@ if (isset($_GET['query'])) {
           return;
         break;
       }
-      if (isset($_SESSION['mailcow_cc_role'])) {
+      if (isset($_SESSION['maimail_cc_role'])) {
         switch ($category) {
           case "rspamd":
             switch ($object) {
@@ -486,14 +486,14 @@ if (isset($_GET['query'])) {
 
                 require_once $_SERVER['DOCUMENT_ROOT'] . '/inc/lib/ssp.class.php';
                 global $pdo;
-                if($_SESSION['mailcow_cc_role'] === 'admin') {
+                if($_SESSION['maimail_cc_role'] === 'admin') {
                   $data = SSP::simple($_GET, $pdo, $table, $primaryKey, $columns);
-                } elseif ($_SESSION['mailcow_cc_role'] === 'domainadmin') {
+                } elseif ($_SESSION['maimail_cc_role'] === 'domainadmin') {
                   $data = SSP::complex($_GET, $pdo, $table, $primaryKey, $columns,
                     'INNER JOIN domain_admins as da ON da.domain = d.domain',
                     [
                       'condition' => 'da.active = 1 and da.username = :username',
-                      'bindings' => ['username' => $_SESSION['mailcow_cc_username']]
+                      'bindings' => ['username' => $_SESSION['maimail_cc_username']]
                     ]);
                 }
 
@@ -853,10 +853,10 @@ if (isset($_GET['query'])) {
                 // 0 is first record, so empty is fine
                 if (isset($extra)) {
                   $extra = preg_replace('/[^\d\-]/i', '', $extra);
-                  $logs = get_logs('dovecot-mailcow', $extra);
+                  $logs = get_logs('dovecot-maimail', $extra);
                 }
                 else {
-                  $logs = get_logs('dovecot-mailcow');
+                  $logs = get_logs('dovecot-maimail');
                 }
                 echo (isset($logs) && !empty($logs)) ? json_encode($logs, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) : '{}';
               break;
@@ -875,10 +875,10 @@ if (isset($_GET['query'])) {
                 // 0 is first record, so empty is fine
                 if (isset($extra)) {
                   $extra = preg_replace('/[^\d\-]/i', '', $extra);
-                  $logs = get_logs('netfilter-mailcow', $extra);
+                  $logs = get_logs('netfilter-maimail', $extra);
                 }
                 else {
-                  $logs = get_logs('netfilter-mailcow');
+                  $logs = get_logs('netfilter-maimail');
                 }
                 echo (isset($logs) && !empty($logs)) ? json_encode($logs, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) : '{}';
               break;
@@ -886,10 +886,10 @@ if (isset($_GET['query'])) {
                 // 0 is first record, so empty is fine
                 if (isset($extra)) {
                   $extra = preg_replace('/[^\d\-]/i', '', $extra);
-                  $logs = get_logs('cron-mailcow', $extra);
+                  $logs = get_logs('cron-maimail', $extra);
                 }
                 else {
-                  $logs = get_logs('cron-mailcow');
+                  $logs = get_logs('cron-maimail');
                 }
                 echo (isset($logs) && !empty($logs)) ? json_encode($logs, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) : '{}';
               break;
@@ -897,10 +897,10 @@ if (isset($_GET['query'])) {
                 // 0 is first record, so empty is fine
                 if (isset($extra)) {
                   $extra = preg_replace('/[^\d\-]/i', '', $extra);
-                  $logs = get_logs('postfix-mailcow', $extra);
+                  $logs = get_logs('postfix-maimail', $extra);
                 }
                 else {
-                  $logs = get_logs('postfix-mailcow');
+                  $logs = get_logs('postfix-maimail');
                 }
                 echo (isset($logs) && !empty($logs)) ? json_encode($logs, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) : '{}';
               break;
@@ -908,10 +908,10 @@ if (isset($_GET['query'])) {
                 // 0 is first record, so empty is fine
                 if (isset($extra)) {
                   $extra = preg_replace('/[^\d\-]/i', '', $extra);
-                  $logs = get_logs('autodiscover-mailcow', $extra);
+                  $logs = get_logs('autodiscover-maimail', $extra);
                 }
                 else {
-                  $logs = get_logs('autodiscover-mailcow');
+                  $logs = get_logs('autodiscover-maimail');
                 }
                 echo (isset($logs) && !empty($logs)) ? json_encode($logs, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) : '{}';
               break;
@@ -919,10 +919,10 @@ if (isset($_GET['query'])) {
                 // 0 is first record, so empty is fine
                 if (isset($extra)) {
                   $extra = preg_replace('/[^\d\-]/i', '', $extra);
-                  $logs = get_logs('sogo-mailcow', $extra);
+                  $logs = get_logs('sogo-maimail', $extra);
                 }
                 else {
-                  $logs = get_logs('sogo-mailcow');
+                  $logs = get_logs('sogo-maimail');
                 }
                 echo (isset($logs) && !empty($logs)) ? json_encode($logs, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) : '{}';
               break;
@@ -930,10 +930,10 @@ if (isset($_GET['query'])) {
                 // 0 is first record, so empty is fine
                 if (isset($extra)) {
                   $extra = preg_replace('/[^\d\-]/i', '', $extra);
-                  $logs = get_logs('mailcow-ui', $extra);
+                  $logs = get_logs('maimail-ui', $extra);
                 }
                 else {
-                  $logs = get_logs('mailcow-ui');
+                  $logs = get_logs('maimail-ui');
                 }
                 echo (isset($logs) && !empty($logs)) ? json_encode($logs, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) : '{}';
               break;
@@ -952,10 +952,10 @@ if (isset($_GET['query'])) {
                 // 0 is first record, so empty is fine
                 if (isset($extra)) {
                   $extra = preg_replace('/[^\d\-]/i', '', $extra);
-                  $logs = get_logs('watchdog-mailcow', $extra);
+                  $logs = get_logs('watchdog-maimail', $extra);
                 }
                 else {
-                  $logs = get_logs('watchdog-mailcow');
+                  $logs = get_logs('watchdog-maimail');
                 }
                 echo (isset($logs) && !empty($logs)) ? json_encode($logs, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) : '{}';
               break;
@@ -963,10 +963,10 @@ if (isset($_GET['query'])) {
                 // 0 is first record, so empty is fine
                 if (isset($extra)) {
                   $extra = preg_replace('/[^\d\-]/i', '', $extra);
-                  $logs = get_logs('acme-mailcow', $extra);
+                  $logs = get_logs('acme-maimail', $extra);
                 }
                 else {
-                  $logs = get_logs('acme-mailcow');
+                  $logs = get_logs('acme-maimail');
                 }
                 echo (isset($logs) && !empty($logs)) ? json_encode($logs, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) : '{}';
               break;
@@ -974,10 +974,10 @@ if (isset($_GET['query'])) {
                 // 0 is first record, so empty is fine
                 if (isset($extra)) {
                   $extra = preg_replace('/[^\d\-]/i', '', $extra);
-                  $logs = get_logs('api-mailcow', $extra);
+                  $logs = get_logs('api-maimail', $extra);
                 }
                 else {
-                  $logs = get_logs('api-mailcow');
+                  $logs = get_logs('api-maimail');
                 }
                 echo (isset($logs) && !empty($logs)) ? json_encode($logs, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) : '{}';
               break;
@@ -1025,14 +1025,14 @@ if (isset($_GET['query'])) {
 
                 require_once $_SERVER['DOCUMENT_ROOT'] . '/inc/lib/ssp.class.php';
                 global $pdo;
-                if($_SESSION['mailcow_cc_role'] === 'admin') {
+                if($_SESSION['maimail_cc_role'] === 'admin') {
                   $data = SSP::complex($_GET, $pdo, $table, $primaryKey, $columns, null, "(`m`.`kind` = '' OR `m`.`kind` = NULL)");
-                } elseif ($_SESSION['mailcow_cc_role'] === 'domainadmin') {
+                } elseif ($_SESSION['maimail_cc_role'] === 'domainadmin') {
                   $data = SSP::complex($_GET, $pdo, $table, $primaryKey, $columns,
                     'INNER JOIN domain_admins as da ON da.domain = m.domain',
                     [
                       'condition' => "(`m`.`kind` = '' OR `m`.`kind` = NULL) AND `da`.`active` = 1 AND `da`.`username` = :username",
-                      'bindings' => ['username' => $_SESSION['mailcow_cc_username']]
+                      'bindings' => ['username' => $_SESSION['maimail_cc_username']]
                     ]);
                 }
 
@@ -1568,7 +1568,7 @@ if (isset($_GET['query'])) {
             }
           break;
           case "status":
-            if ($_SESSION['mailcow_cc_role'] == "admin") {
+            if ($_SESSION['maimail_cc_role'] == "admin") {
               switch ($object) {
                 case "containers":
                   $containers = (docker('info'));
@@ -1593,7 +1593,7 @@ if (isset($_GET['query'])) {
                 break;
                 case "vmail":
                   $exec_fields_vmail = array('cmd' => 'system', 'task' => 'df', 'dir' => '/var/vmail');
-                  $vmail_df = explode(',', json_decode(docker('post', 'dovecot-mailcow', 'exec', $exec_fields_vmail), true));
+                  $vmail_df = explode(',', json_decode(docker('post', 'dovecot-maimail', 'exec', $exec_fields_vmail), true));
                   $temp = array(
                     'type' => 'info',
                     'disk' => $vmail_df[0],
@@ -1616,9 +1616,9 @@ if (isset($_GET['query'])) {
                     curl_setopt($curl, CURLOPT_POST, 0);
                     curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 10);
                     curl_setopt($curl, CURLOPT_TIMEOUT, 15);
-                    curl_setopt($curl, CURLOPT_URL, 'http://ipv4.mailcow.email');
+                    curl_setopt($curl, CURLOPT_URL, 'http://ipv4.maimail.email');
                     $ipv4 = curl_exec($curl);
-                    curl_setopt($curl, CURLOPT_URL, 'http://ipv6.mailcow.email');
+                    curl_setopt($curl, CURLOPT_URL, 'http://ipv6.maimail.email');
                     $ipv6 = curl_exec($curl);
                     $ips = array(
                       "ipv4" => $ipv4,
@@ -1643,7 +1643,7 @@ if (isset($_GET['query'])) {
             process_get_return($score);
           break;
           case "identity-provider":
-            if($_SESSION['mailcow_cc_role'] === 'admin') {
+            if($_SESSION['maimail_cc_role'] === 'admin') {
               process_get_return($iam_settings);
             } else {
               process_get_return(null);
@@ -1662,7 +1662,7 @@ if (isset($_GET['query'])) {
       }
     break;
     case "delete":
-      if ($_SESSION['mailcow_cc_api_access'] == 'ro' || isset($_SESSION['pending_mailcow_cc_username']) || !isset($_SESSION["mailcow_cc_username"])) {
+      if ($_SESSION['maimail_cc_api_access'] == 'ro' || isset($_SESSION['pending_maimail_cc_username']) || !isset($_SESSION["maimail_cc_username"])) {
         http_response_code(403);
         echo json_encode(array(
             'type' => 'error',
@@ -1816,7 +1816,7 @@ if (isset($_GET['query'])) {
       }
     break;
     case "edit":
-      if ($_SESSION['mailcow_cc_api_access'] == 'ro' || isset($_SESSION['pending_mailcow_cc_username']) || !isset($_SESSION["mailcow_cc_username"])) {
+      if ($_SESSION['maimail_cc_api_access'] == 'ro' || isset($_SESSION['pending_maimail_cc_username']) || !isset($_SESSION["maimail_cc_username"])) {
         http_response_code(403);
         echo json_encode(array(
             'type' => 'error',
@@ -2033,10 +2033,10 @@ if (isset($_GET['query'])) {
           process_edit_return(customize('edit', 'custom_login', $attr));
         break;
         case "self":
-          if ($_SESSION['mailcow_cc_role'] == "domainadmin") {
+          if ($_SESSION['maimail_cc_role'] == "domainadmin") {
             process_edit_return(domain_admin('edit', $attr));
           }
-          elseif ($_SESSION['mailcow_cc_role'] == "user") {
+          elseif ($_SESSION['maimail_cc_role'] == "user") {
             process_edit_return(edit_user_account($attr));
           }
         break;
@@ -2077,8 +2077,8 @@ if (isset($_GET['query'])) {
       exit();
   }
 }
-if (array_key_exists('mailcow_cc_api', $_SESSION) && $_SESSION['mailcow_cc_api'] === true) {
-  if (isset($_SESSION['mailcow_cc_api']) && $_SESSION['mailcow_cc_api'] === true) {
+if (array_key_exists('maimail_cc_api', $_SESSION) && $_SESSION['maimail_cc_api'] === true) {
+  if (isset($_SESSION['maimail_cc_api']) && $_SESSION['maimail_cc_api'] === true) {
     unset($_SESSION['return']);
   }
 }

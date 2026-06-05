@@ -20,7 +20,7 @@ get_installed_tools(){
         if [[ -z $(command -v ${bin}) ]]; then
           echo "Error: Cannot find command '${bin}'. Cannot proceed."
           echo "Solution: Please review system requirements and install requirements. Then, re-run the script."
-          echo "See System Requirements: https://docs.mailcow.email/getstarted/install/"
+          echo "See System Requirements: https://docs.maimail.email/getstarted/install/"
           echo "Exiting..."
           exit 1
         fi
@@ -43,7 +43,7 @@ get_compose_type(){
             COMPOSE_VERSION=native
             COMPOSE_COMMAND="docker compose"
             if [[ "$caller" == "update.sh" ]]; then
-                sed -i 's/^DOCKER_COMPOSE_VERSION=.*/DOCKER_COMPOSE_VERSION=native/' "$SCRIPT_DIR/mailcow.conf"
+                sed -i 's/^DOCKER_COMPOSE_VERSION=.*/DOCKER_COMPOSE_VERSION=native/' "$SCRIPT_DIR/maimail.conf"
             fi
             echo -e "\e[33mFound Docker Compose Plugin (native).\e[0m"
             echo -e "\e[33mSetting the DOCKER_COMPOSE_VERSION Variable to native\e[0m"
@@ -51,7 +51,7 @@ get_compose_type(){
             echo -e "\e[33mNotice: You'll have to update this Compose Version via your Package Manager manually!\e[0m"
         else
             echo -e "\e[31mCannot find Docker Compose with a Version Higher than 2.X.X.\e[0m"
-            echo -e "\e[31mPlease update/install it manually regarding to this doc site: https://docs.mailcow.email/install/\e[0m"
+            echo -e "\e[31mPlease update/install it manually regarding to this doc site: https://docs.maimail.email/install/\e[0m"
             exit 1
         fi
     elif docker-compose > /dev/null 2>&1; then
@@ -60,7 +60,7 @@ get_compose_type(){
             COMPOSE_VERSION=standalone
             COMPOSE_COMMAND="docker-compose"
             if [[ "$caller" == "update.sh" ]]; then
-                sed -i 's/^DOCKER_COMPOSE_VERSION=.*/DOCKER_COMPOSE_VERSION=standalone/' "$SCRIPT_DIR/mailcow.conf"
+                sed -i 's/^DOCKER_COMPOSE_VERSION=.*/DOCKER_COMPOSE_VERSION=standalone/' "$SCRIPT_DIR/maimail.conf"
             fi
             echo -e "\e[33mFound Docker Compose Standalone.\e[0m"
             echo -e "\e[33mSetting the DOCKER_COMPOSE_VERSION Variable to standalone\e[0m"
@@ -68,33 +68,33 @@ get_compose_type(){
             echo -e "\e[33mNotice: For an automatic update of docker-compose please use the update_compose.sh scripts located at the helper-scripts folder.\e[0m"
         else
             echo -e "\e[31mCannot find Docker Compose with a Version Higher than 2.X.X.\e[0m"
-            echo -e "\e[31mPlease update/install manually regarding to this doc site: https://docs.mailcow.email/install/\e[0m"
+            echo -e "\e[31mPlease update/install manually regarding to this doc site: https://docs.maimail.email/install/\e[0m"
             exit 1
         fi
     fi
     else
         echo -e "\e[31mCannot find Docker Compose.\e[0m"
-        echo -e "\e[31mPlease install it regarding to this doc site: https://docs.mailcow.email/install/\e[0m"
+        echo -e "\e[31mPlease install it regarding to this doc site: https://docs.maimail.email/install/\e[0m"
         exit 1
     fi
 }
 
 detect_bad_asn() {
   echo -e "\e[33mDetecting if your IP is listed on Spamhaus Bad ASN List...\e[0m"
-  response=$(curl --connect-timeout 15 --max-time 30 -s -o /dev/null -w "%{http_code}" "https://asn-check.mailcow.email")
+  response=$(curl --connect-timeout 15 --max-time 30 -s -o /dev/null -w "%{http_code}" "https://asn-check.maimail.email")
   if [ "$response" -eq 503 ]; then
     if [ -z "$SPAMHAUS_DQS_KEY" ]; then
       echo -e "\e[33mYour server's public IP uses an AS that is blocked by Spamhaus to use their DNS public blocklists for Postfix.\e[0m"
-      echo -e "\e[33mmailcow did not detected a value for the variable SPAMHAUS_DQS_KEY inside mailcow.conf!\e[0m"
+      echo -e "\e[33mmaimail did not detected a value for the variable SPAMHAUS_DQS_KEY inside maimail.conf!\e[0m"
       sleep 2
       echo ""
       echo -e "\e[33mTo use the Spamhaus DNS Blocklists again, you will need to create a FREE account for their Data Query Service (DQS) at: https://www.spamhaus.com/free-trial/sign-up-for-a-free-data-query-service-account\e[0m"
-      echo -e "\e[33mOnce done, enter your DQS API key in mailcow.conf and mailcow will do the rest for you!\e[0m"
+      echo -e "\e[33mOnce done, enter your DQS API key in maimail.conf and maimail will do the rest for you!\e[0m"
       echo ""
       sleep 2
     else
       echo -e "\e[33mYour server's public IP uses an AS that is blocked by Spamhaus to use their DNS public blocklists for Postfix.\e[0m"
-      echo -e "\e[32mmailcow detected a Value for the variable SPAMHAUS_DQS_KEY inside mailcow.conf. Postfix will use DQS with the given API key...\e[0m"
+      echo -e "\e[32mmaimail detected a Value for the variable SPAMHAUS_DQS_KEY inside maimail.conf. Postfix will use DQS with the given API key...\e[0m"
     fi
   elif [ "$response" -eq 200 ]; then
     echo -e "\e[33mCheck completed! Your IP is \e[32mclean\e[0m"
@@ -134,14 +134,14 @@ docker_garbage() {
   IMGS_TO_DELETE=()
 
   declare -A IMAGES_INFO
-  COMPOSE_IMAGES=($(grep -oP "image: \K(ghcr\.io/)?mailcow.+" "${SCRIPT_DIR}/docker-compose.yml"))
+  COMPOSE_IMAGES=($(grep -oP "image: \K(ghcr\.io/)?maimail.+" "${SCRIPT_DIR}/docker-compose.yml"))
 
-  for existing_image in $(docker images --format "{{.ID}}:{{.Repository}}:{{.Tag}}" | grep -E '(mailcow/|ghcr\.io/mailcow/)'); do
+  for existing_image in $(docker images --format "{{.ID}}:{{.Repository}}:{{.Tag}}" | grep -E '(maimail/|ghcr\.io/maimail/)'); do
       ID=$(echo "$existing_image" | cut -d ':' -f 1)
       REPOSITORY=$(echo "$existing_image" | cut -d ':' -f 2)
       TAG=$(echo "$existing_image" | cut -d ':' -f 3)
 
-      if [[ "$REPOSITORY" == "mailcow/backup" || "$REPOSITORY" == "ghcr.io/mailcow/backup" ]]; then
+      if [[ "$REPOSITORY" == "maimail/backup" || "$REPOSITORY" == "ghcr.io/maimail/backup" ]]; then
           if [[ "$TAG" != "<none>" ]]; then
               continue
           fi
@@ -156,7 +156,7 @@ docker_garbage() {
   done
 
   if [[ ! -z ${IMGS_TO_DELETE[*]} ]]; then
-      echo "The following unused mailcow images were found:"
+      echo "The following unused maimail images were found:"
       for id in "${IMGS_TO_DELETE[@]}"; do
           echo "    ${IMAGES_INFO[$id]} ($id)"
       done
@@ -169,7 +169,7 @@ docker_garbage() {
               echo "OK, skipped."
           fi
       else
-          echo "Running in forced mode! Force removing old mailcow images..."
+          echo "Running in forced mode! Force removing old maimail images..."
           docker rmi ${IMGS_TO_DELETE[*]}
       fi
       echo -e "\e[32mFurther cleanup...\e[0m"
@@ -201,7 +201,7 @@ detect_major_update() {
     if [[ -z "$current_version" ]]; then
       return 1
     fi
-    release_url="https://github.com/mailcow/mailcow-dockerized/releases/tag"
+    release_url="https://github.com/maimail/maimail-dockerized/releases/tag"
 
     updates_to_apply=()
 

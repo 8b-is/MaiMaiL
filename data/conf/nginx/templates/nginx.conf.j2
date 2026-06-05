@@ -173,11 +173,11 @@ http {
         ssl_certificate /etc/ssl/mail/cert.pem;
         ssl_certificate_key /etc/ssl/mail/key.pem;
 
-        index mailcowauth.php;
+        index maimailauth.php;
         server_name _;
         error_log  /var/log/nginx/error.log;
         access_log /var/log/nginx/access.log;
-        root /mailcowauth;
+        root /maimailauth;
         client_max_body_size 10M;
         location ~ \.php$ {
             client_max_body_size 10M;

@@ -20,7 +20,7 @@
       <li role="presentation"><span class="dropdown-header fs-6">{{ lang.debug.external_logs }}</span></li>
       <li role="presentation"><button class="dropdown-item" data-bs-target="#tab-rspamd-history" aria-selected="false" aria-controls="tab-rspamd-history" role="tab" data-bs-toggle="tab">Rspamd</button></li>
       <li role="presentation"><span class="dropdown-header fs-6">{{ lang.debug.static_logs }}</span></li>
-      <li role="presentation"><button class="dropdown-item" data-bs-target="#tab-ui" aria-selected="false" aria-controls="tab-ui" role="tab" data-bs-toggle="tab">Mailcow UI</button></li>
+      <li role="presentation"><button class="dropdown-item" data-bs-target="#tab-ui" aria-selected="false" aria-controls="tab-ui" role="tab" data-bs-toggle="tab">MaiMaiL UI</button></li>
       <li role="presentation"><button class="dropdown-item" data-bs-target="#tab-sasl" aria-selected="false" aria-controls="tab-sasl" role="tab" data-bs-toggle="tab">SASL</button></li>
     </ul>
   </li>
@@ -38,8 +38,8 @@
           <div class="card-body">
             <div class="row">
               <div class="col-sm-12 col-md-4 d-flex flex-column">
-                <img class="main-logo img-responsive my-auto m-auto" alt="mailcow-logo" style="max-width: 85%; max-height: 85%;" src="{{ logo|default('/img/cow_mailcow.svg') }}">
-                <img class="main-logo-dark img-responsive my-auto m-auto" alt="mailcow-logo-dark" style="max-width: 85%; max-height: 85%;" src="{{ logo_dark|default('/img/cow_mailcow.svg') }}">
+                <img class="main-logo img-responsive my-auto m-auto" alt="maimail-logo" style="max-width: 85%; max-height: 85%;" src="{{ logo|default('/img/cow_maimail.svg') }}">
+                <img class="main-logo-dark img-responsive my-auto m-auto" alt="maimail-logo-dark" style="max-width: 85%; max-height: 85%;" src="{{ logo_dark|default('/img/cow_maimail.svg') }}">
               </div>
               <div class="col-sm-12 col-md-8">
                 <div style="margin-top: 10px;">
@@ -78,8 +78,8 @@
                         <td>Version</td>
                         <td class="text-break">
                           <div class="fw-bolder">
-                            <p ><a href="#" id="mailcow_version">{{ mailcow_info.version_tag }}</a></p>
-                            <p id="mailcow_update"></p>
+                            <p ><a href="#" id="maimail_version">{{ maimail_info.version_tag }}</a></p>
+                            <p id="maimail_update"></p>
                           </div>
                         </td>
                       </tr>
@@ -269,7 +269,7 @@
         <div class="debug-log-info">{{ lang.debug.log_info|format(log_lines+1)|raw }}</div>
         <div class="card">
           <div class="card-header d-flex align-items-center fs-5">
-            <span class="mt-2 ms-2">Mailcow UI</span>
+            <span class="mt-2 ms-2">MaiMaiL UI</span>
             <div class="btn-group ms-auto">
               <button class="btn btn-sm btn-secondary refresh_table" data-draw="draw_ui_logs" data-table="ui_logs">{{ lang.admin.refresh }}</button>
             </div>
@@ -277,8 +277,8 @@
           <div class="card-body">
             <a class="btn btn-sm btn-secondary dropdown-toggle mb-4" data-bs-toggle="dropdown" href="#">{{ lang.mailbox.quick_actions }}</a>
             <ul class="dropdown-menu">
-              <li><a class="dropdown-item add_log_lines" data-post-process="mailcow_ui" data-table="ui_logs" data-log-url="ui" data-nrows="100" href="#">+ 100</a></li>
-              <li><a class="dropdown-item add_log_lines" data-post-process="mailcow_ui" data-table="ui_logs" data-log-url="ui" data-nrows="1000" href="#">+ 1000</a></li>
+              <li><a class="dropdown-item add_log_lines" data-post-process="maimail_ui" data-table="ui_logs" data-log-url="ui" data-nrows="100" href="#">+ 100</a></li>
+              <li><a class="dropdown-item add_log_lines" data-post-process="maimail_ui" data-table="ui_logs" data-log-url="ui" data-nrows="1000" href="#">+ 1000</a></li>
               <li class="table_collapse_option"><hr class="dropdown-divider"></li>
               <li class="table_collapse_option"><a class="dropdown-item" data-datatables-expand="ui_logs" data-table="ui_logs" href="#">{{ lang.datatables.expand_all }}</a></li>
               <li class="table_collapse_option"><a class="dropdown-item" data-datatables-collapse="ui_logs" data-table="ui_logs" href="#">{{ lang.datatables.collapse_all }}</a></li>

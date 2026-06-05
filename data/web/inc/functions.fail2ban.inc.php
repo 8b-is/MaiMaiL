@@ -5,7 +5,7 @@ function fail2ban($_action, $_data = null, $_extra = null) {
   switch ($_action) {
     case 'get':
       $f2b_options = array();
-      if ($_SESSION['mailcow_cc_role'] != "admin") {
+      if ($_SESSION['maimail_cc_role'] != "admin") {
         return false;
       }
       try {
@@ -85,7 +85,7 @@ function fail2ban($_action, $_data = null, $_extra = null) {
       return $f2b_options;
     break;
     case 'edit':
-      if ($_SESSION['mailcow_cc_role'] != "admin") {
+      if ($_SESSION['maimail_cc_role'] != "admin") {
         $_SESSION['return'][] = array(
           'type' => 'danger',
           'log' => array(__FUNCTION__, $_action, $_data_log),
@@ -109,7 +109,7 @@ function fail2ban($_action, $_data = null, $_extra = null) {
             return false;
           }
           // Rules will also be recreated on log events, but rules may seem empty for a second in the UI
-          docker('post', 'netfilter-mailcow', 'restart');
+          docker('post', 'netfilter-maimail', 'restart');
           $fail_count = 0;
           $regex_result = json_decode($redis->Get('F2B_REGEX'), true);
           while (empty($regex_result) && $fail_count < 10) {
@@ -206,7 +206,7 @@ function fail2ban($_action, $_data = null, $_extra = null) {
                 try {
                   $redis->hSet('F2B_BLACKLIST', $network, 1);
                   $redis->hDel('F2B_WHITELIST', $network, 1);
-                  //$response = docker('post', 'netfilter-mailcow', 'restart');
+                  //$response = docker('post', 'netfilter-maimail', 'restart');
                 }
                 catch (RedisException $e) {
                   $_SESSION['return'][] = array(
@@ -372,7 +372,7 @@ function fail2ban($_action, $_data = null, $_extra = null) {
           return $banlist;
         break;
         case 'refresh':
-          if ($_SESSION['mailcow_cc_role'] != "admin") {
+          if ($_SESSION['maimail_cc_role'] != "admin") {
             return false;
           }
 

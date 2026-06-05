@@ -30,7 +30,7 @@ try {
     $redis->connect(getenv('REDIS_SLAVEOF_IP'), getenv('REDIS_SLAVEOF_PORT'));
   }
   else {
-    $redis->connect('redis-mailcow', 6379);
+    $redis->connect('redis-maimail', 6379);
   }
   $redis->auth(getenv("REDISPASS"));
 }
@@ -60,8 +60,8 @@ require_once __DIR__ . '/../web/inc/functions.mailbox.inc.php';
 require_once __DIR__ . '/../web/inc/functions.ratelimit.inc.php';
 require_once __DIR__ . '/../web/inc/functions.acl.inc.php';
 
-$_SESSION['mailcow_cc_username'] = "admin";
-$_SESSION['mailcow_cc_role'] = "admin";
+$_SESSION['maimail_cc_username'] = "admin";
+$_SESSION['maimail_cc_role'] = "admin";
 $_SESSION['acl']['tls_policy'] = "1";
 $_SESSION['acl']['quarantine_notification'] = "1";
 $_SESSION['acl']['quarantine_category'] = "1";
@@ -167,7 +167,7 @@ while (true) {
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
     // check if matching attribute mapping exists
-    $user_template = $user['attributes']['mailcow_template'][0];
+    $user_template = $user['attributes']['maimail_template'][0];
     $mapper_key = array_search($user_template, $iam_settings['mappers']);
 
     $_SESSION['access_all_exception'] = '1';

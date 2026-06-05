@@ -8,8 +8,8 @@ POSTWHITE_CONF=${POSTWHITE_DIR}/postwhite.conf
 
 CUSTOM_HOSTS='"web.de gmx.net mail.de freenet.de arcor.de unity-mail.de protonmail.ch ionos.com strato.com t-online.de"'
 STATIC_HOSTS=(
-    "49.12.4.251 permit # checks.mailcow.email"
-    "2a01:4f8:c17:7906::10 permit # checks.mailcow.email"
+    "49.12.4.251 permit # checks.maimail.email"
+    "2a01:4f8:c17:7906::10 permit # checks.maimail.email"
 )
 
 mkdir ${SCRIPT_DIR}/postwhite_tmp
