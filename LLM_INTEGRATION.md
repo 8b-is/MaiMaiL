@@ -38,6 +38,9 @@ Add these to your `mailcow.conf` or `.env` file:
 OLLAMA_MODEL=llama3.2:3b
 LLM_PROCESSING_INTERVAL=60
 LLM_BATCH_SIZE=10
+
+# Optional: Use external Ollama instance (see "Using External Ollama" section below)
+# OLLAMA_HOST=192.168.1.100:11434
 ```
 
 2. **Pull the LLM Model**
@@ -56,6 +59,12 @@ Available models:
 
 3. **Start the Services**
 
+For local Ollama deployment:
+```bash
+docker-compose --profile llm up -d
+```
+
+Or start services individually:
 ```bash
 docker-compose up -d ollama-mailcow llm-processor-mailcow
 ```
@@ -66,6 +75,85 @@ Check the LLM processor status:
 
 ```bash
 curl http://localhost/api/v1/get/llm/health
+```
+
+### Using External Ollama Instance
+
+You can configure the LLM processor to use an Ollama instance running on a different server or network location. This is useful for:
+- Load distribution across multiple servers
+- Network traffic monitoring and analysis
+- Running Ollama on a dedicated GPU server
+- Privacy auditing with tools like Wireshark
+
+#### Setup Steps:
+
+1. **On the remote Ollama server:**
+
+```bash
+# Install and run Ollama
+curl -fsSL https://ollama.com/install.sh | sh
+
+# Configure Ollama to listen on all interfaces
+export OLLAMA_HOST=0.0.0.0:11434
+ollama serve
+
+# Pull your desired model
+ollama pull llama3.2:3b
+```
+
+2. **On the Mailcow server:**
+
+Add the external Ollama host to your `mailcow.conf`:
+
+```bash
+# External Ollama configuration
+OLLAMA_HOST=192.168.1.100:11434  # Replace with your Ollama server IP/hostname
+OLLAMA_MODEL=llama3.2:3b
+```
+
+3. **Start services with or without local Ollama:**
+
+For local Ollama (default):
+```bash
+# Start with local Ollama instance
+docker-compose --profile llm up -d
+```
+
+For external Ollama only:
+```bash
+# Start only the processor, not the local Ollama
+docker-compose up -d llm-processor-mailcow
+```
+
+4. **Network monitoring (optional):**
+
+To monitor network traffic between Mailcow and the external Ollama instance:
+
+```bash
+# On the Mailcow server
+sudo tcpdump -i any host 192.168.1.100 and port 11434 -w ollama-traffic.pcap
+
+# Or use Wireshark to capture and analyze traffic
+```
+
+#### Security Considerations:
+
+- **Firewall**: Ensure port 11434 is only accessible from trusted networks
+- **TLS**: Consider using a reverse proxy with TLS for encrypted communication
+- **Network isolation**: Place Ollama on a separate VLAN if possible
+- **Monitoring**: Use network monitoring tools to verify no data leaves your infrastructure
+
+#### Troubleshooting:
+
+If the health check fails with an external Ollama instance:
+
+```bash
+# Test connectivity from the processor container
+docker-compose exec llm-processor-mailcow curl -v http://YOUR_OLLAMA_HOST:11434/api/tags
+
+# Check Ollama server logs
+# On the Ollama server
+journalctl -u ollama -f
 ```
 
 ## API Usage

@@ -659,6 +659,8 @@ services:
     ollama-mailcow:
       image: ollama/ollama:latest
       restart: always
+      profiles:
+        - llm
       environment:
         - TZ=${TZ}
         - OLLAMA_HOST=0.0.0.0
@@ -690,10 +692,9 @@ services:
         - mysql-mailcow
         - redis-mailcow
         - dovecot-mailcow
-        - ollama-mailcow
       environment:
         - TZ=${TZ}
-        - OLLAMA_HOST=ollama-mailcow:11434
+        - OLLAMA_HOST=${OLLAMA_HOST:-ollama-mailcow:11434}
         - OLLAMA_MODEL=${OLLAMA_MODEL:-llama3.2:3b}
         - MYSQL_HOST=mysql-mailcow
         - MYSQL_PORT=3306
