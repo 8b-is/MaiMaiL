@@ -2,6 +2,7 @@
   import { auth, currentUser } from '$lib/stores/auth';
   import { theme } from '$lib/stores/theme';
   import { notifications as notificationStore } from '$lib/stores/notifications';
+  import { getTenantContext } from '$lib/tenant/context';
   import Badge from '$lib/components/ui/Badge.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import { getInitials, stringToColor } from '$lib/utils';
@@ -12,6 +13,7 @@
   $: unreadCount = $notificationStore.filter((n) => !n.read).length;
   $: userInitials = $currentUser ? getInitials($currentUser.username) : '?';
   $: userColor = $currentUser ? stringToColor($currentUser.username) : '#ccc';
+  const tenantContext = getTenantContext();
 
   function toggleTheme() {
     theme.toggle();
@@ -32,7 +34,8 @@
           <svg class="w-8 h-8 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
           </svg>
-          <span class="hidden sm:inline">MaiMaiL</span>
+          <span class="hidden sm:inline">{tenantContext.branding.displayName || 'MaiMaiL'}</span>
+          <span class="hidden lg:inline text-xs text-muted-foreground">{tenantContext.domain}</span>
         </a>
 
         <!-- Navigation - Year 2200 Edition -->

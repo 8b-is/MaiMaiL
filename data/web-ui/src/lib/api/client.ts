@@ -14,6 +14,7 @@ import type {
   QueueItem,
   QuarantineItem,
 } from '$lib/types';
+import { getTenantContext } from '$lib/tenant/context';
 
 /**
  * API Client Configuration
@@ -73,9 +74,16 @@ class ApiClient {
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
     };
+    const tenantContext = getTenantContext();
 
     if (this.apiKey) {
       headers['X-API-Key'] = this.apiKey;
+    }
+    if (tenantContext.domain) {
+      headers['X-Tenant-Domain'] = tenantContext.domain;
+    }
+    if (tenantContext.tenantId) {
+      headers['X-Tenant-Id'] = tenantContext.tenantId;
     }
 
     const options: RequestInit = {
