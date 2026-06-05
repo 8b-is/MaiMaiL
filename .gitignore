@@ -82,3 +82,4 @@ update_diffs/
 create_cold_standby.sh
 !data/conf/nginx/maimail_auth.conf
 data/conf/postfix/postfix-tlspol
+rust-proxy/target/

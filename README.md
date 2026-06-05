@@ -4,6 +4,60 @@
 [![Twitter URL](https://img.shields.io/twitter/url/https/twitter.com/maimail_email.svg?style=social&label=Follow%20%40maimail_email)](https://twitter.com/maimail_email)
 ![Mastodon Follow](https://img.shields.io/mastodon/follow/109388212176073348?domain=https%3A%2F%2Fmaimail.social&label=Follow%20%40doncow%40maimail.social&link=https%3A%2F%2Fmaimail.social%2F%40doncow)
 
+**Current Version:** 0.1.0
+
+## Multi-tenant domain-keyed architecture
+
+- Single server, multiple domains.
+- Tenant context is resolved from incoming `Host`/domain.
+- The dashboard now has tenant context extension points for branding and runtime config hooks (`window.__MMAIL_TENANT_CONFIG__` and `window.__MMAIL_TENANT_RESOLVER__`).
+- Requests include tenant metadata headers (`X-Tenant-Domain`, `X-Tenant-Id`) for downstream isolation controls.
+
+## Rust reverse proxy (`/rust-proxy`)
+
+- Domain-keyed reverse proxy implemented in stable Rust.
+- Supports HTTP by default and optional HTTPS (set `MMAIL_PROXY_TLS_CERT` + `MMAIL_PROXY_TLS_KEY`).
+- Tenant-aware routing:
+  - resolves tenant by domain/host,
+  - supports per-tenant backend and route-prefix overrides,
+  - injects tenant headers for downstream services,
+  - logs host/tenant/backend/status context for each proxied request.
+- Config sources:
+  - file: `rust-proxy/config/proxy.toml` (default),
+  - env override: `MMAIL_PROXY_CONFIG`,
+  - server/env overrides: `MMAIL_PROXY_BIND`, `MMAIL_PROXY_MODE`, `MMAIL_PROXY_DEFAULT_BACKEND`, `MMAIL_PROXY_LOG_LEVEL`, `MMAIL_PROXY_TIMEOUT_SECS`, `MMAIL_PROXY_TRUST_X_FORWARDED_HOST`, `MMAIL_PROXY_TLS_CERT`, `MMAIL_PROXY_TLS_KEY`.
+
+## Repository management script (`/scripts/manage.sh`)
+
+```bash
+# show help
+./scripts/manage.sh --help
+
+# clean artifacts
+./scripts/manage.sh clean
+
+# build (default dev) or release
+./scripts/manage.sh build
+./scripts/manage.sh build release
+
+# run modes
+./scripts/manage.sh run dev
+./scripts/manage.sh run prod
+./scripts/manage.sh run proxy-dev
+./scripts/manage.sh run proxy-prod
+./scripts/manage.sh run web-dev
+
+# release build
+./scripts/manage.sh release
+
+# semantic versioning
+./scripts/manage.sh version bump
+./scripts/manage.sh version minor
+./scripts/manage.sh version major
+```
+
+`manage.sh` prefers `pnpm` for Node-based tasks and falls back to `npm` only when `pnpm` is unavailable.
+
 
 ## Want to support maimail?
 
