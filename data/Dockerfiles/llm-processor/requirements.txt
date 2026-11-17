@@ -1,4 +1,4 @@
-aiohttp==3.9.1
+aiohttp==3.14.4
 asyncio==3.4.3
 email-parser==0.1.0
 imapclient==3.0.0
